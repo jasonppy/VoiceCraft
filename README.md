@@ -12,9 +12,9 @@ The TODOs left will be completed by the end of March 2024.
 - [x] Codebase upload
 - [x] Environment setup
 - [x] Inference demo for speech editing and TTS
-- [] Upload model weights
-- [] Training guidance
-- [] Upload the RealEdit dataset
+- [ ] Upload model weights
+- [ ] Training guidance
+- [ ] Upload the RealEdit dataset
 
 ## Environment setup
 ```bash
