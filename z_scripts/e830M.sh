@@ -7,9 +7,9 @@ export WORLD_SIZE=4
 dataset=gigaspeech
 mkdir -p ./logs/${dataset}
 
-exp_root="/data/scratch/pyp/exp_pyp/VoiceCraft"
+exp_root="path/to/store/exp_results"
 exp_name=e830M
-dataset_dir="/data/scratch/pyp/datasets/gigaspeech_phn_enc_manifest/xl"
+dataset_dir="path/to/stored_extracted_codes_and_phonemes/xl" # xs if you only extracted xs in previous step
 encodec_codes_folder_name="encodec_16khz_4codebooks"
 
 # export CUDA_LAUNCH_BLOCKING=1 # for debugging
@@ -51,7 +51,7 @@ torchrun --nnodes=1 --rdzv-backend=c10d --rdzv-endpoint=localhost:41977 --nproc_
 --text_vocab_size 100 \
 --text_pad_token 100 \
 --phn_folder_name "phonemes" \
---manifest_name "manifest_large16khz_lessambi" \
+--manifest_name "manifest" \
 --encodec_folder_name ${encodec_codes_folder_name} \
 --audio_vocab_size 2048 \
 --empty_token 2048 \
