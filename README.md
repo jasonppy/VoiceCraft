@@ -1,10 +1,14 @@
 # VoiceCraft: Zero-Shot Speech Editing and Text-to-Speech in the Wild
 [Demo](https://jasonppy.github.io/VoiceCraft_web) [Paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf)
 
+
 ### TL;DR
 VoiceCraft is a token infilling neural codec language model, that achieves state-of-the-art performance on both **speech editing** and **zero-shot text-to-speech (TTS)** on in-the-wild data including audiobooks, internet videos, and podcasts.
 
 To clone or edit an unseen voice, VoiceCraft needs only a few seconds of reference.
+
+## News
+:star: 03/28/2024: Model weights are up on HuggingFace🤗 [here](https://huggingface.co/pyp1/VoiceCraft/tree/main)!
 
 
 ## TODO
@@ -13,8 +17,9 @@ The TODOs left will be completed by the end of March 2024.
 - [x] Environment setup
 - [x] Inference demo for speech editing and TTS
 - [x] Training guidance
-- [x] Upload the RealEdit dataset and training manifest
-- [ ] Upload model weights (encodec weights are up)
+- [x] RealEdit dataset and training manifest
+- [x] Model weights (both 330M and 830M, the former seems to be just as good but way faster)
+- [ ] More
 
 
 ## Environment setup
