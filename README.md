@@ -31,7 +31,7 @@ pip install torch==2.0.1 # this assumes your system is compatible with CUDA 11.7
 apt-get install ffmpeg # if you don't already have ffmpeg installed
 pip install -e git+https://github.com/facebookresearch/audiocraft.git@c5157b5bf14bf83449c17ea1eeb66c19fb4bc7f0#egg=audiocraft
 apt-get install espeak-ng # backend for the phonemizer installed below
-pip install tensorboard=2.16.2
+pip install tensorboard==2.16.2
 pip install phonemizer==3.2.1
 pip install torchaudio==2.0.2
 pip install datasets==2.16.0
