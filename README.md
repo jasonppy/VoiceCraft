@@ -18,7 +18,7 @@ The TODOs left will be completed by the end of March 2024.
 - [x] Inference demo for speech editing and TTS
 - [x] Training guidance
 - [x] RealEdit dataset and training manifest
-- [x] Model weights (both 330M and 830M, the former seems to be just as good but way faster)
+- [x] Model weights (both 330M and 830M, the former seems to be just as good)
 - [ ] More
 
 
