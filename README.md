@@ -19,7 +19,9 @@ The TODOs left will be completed by the end of March 2024.
 - [x] Training guidance
 - [x] RealEdit dataset and training manifest
 - [x] Model weights (both 330M and 830M, the former seems to be just as good)
-- [ ] More
+- [ ] Write colab notebooks for better hands-on experience
+- [ ] HuggingFace Spaces demo
+- [ ] Better guidance on training
 
 
 ## Environment setup
