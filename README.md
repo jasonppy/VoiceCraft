@@ -10,6 +10,24 @@ To clone or edit an unseen voice, VoiceCraft needs only a few seconds of referen
 ## News
 :star: 03/28/2024: Model weights are up on HuggingFace🤗 [here](https://huggingface.co/pyp1/VoiceCraft/tree/main)!
 
+## TODO
+- [x] Codebase upload
+- [x] Environment setup
+- [x] Inference demo for speech editing and TTS
+- [x] Training guidance
+- [x] RealEdit dataset and training manifest
+- [x] Model weights (both 330M and 830M, the former seems to be just as good)
+- [ ] Write colab notebooks for better hands-on experience
+- [ ] HuggingFace Spaces demo
+- [ ] Better guidance on training
+
+## How to run TTS inference 
+There are two ways: 
+1. with docker. see [quickstart](#quickstart)
+2. without docker. see [envrionment setup](#environment-setup)
+
+When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
+
 ## QuickStart
 :star: To try out TTS inference with VoiceCraft, the best way is using docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen. 
 
@@ -42,18 +60,6 @@ nvidia-smi
 # 7. Now in browser, open inference_tts.ipynb and work through one cell at a time
 echo GOOD LUCK
 ```
-
-## TODO
-- [x] Codebase upload
-- [x] Environment setup
-- [x] Inference demo for speech editing and TTS
-- [x] Training guidance
-- [x] RealEdit dataset and training manifest
-- [x] Model weights (both 330M and 830M, the former seems to be just as good)
-- [ ] Write colab notebooks for better hands-on experience
-- [ ] HuggingFace Spaces demo
-- [ ] Better guidance on training
-
 
 ## Environment setup
 ```bash
