@@ -11,18 +11,19 @@ To clone or edit an unseen voice, VoiceCraft needs only a few seconds of referen
 :star: 03/28/2024: Model weights are up on HuggingFace🤗 [here](https://huggingface.co/pyp1/VoiceCraft/tree/main)!
 
 ## QuickStart
-For Linux only, or likely Windows Subsystem for Linux (WSL) ubuntu.
+Tested on Linux and Windows and should work with any host with docker installed.
 ```bash
 # 1. clone the repo on in a directory on a drive with plenty of free space
 git clone git@github.com:jasonppy/VoiceCraft.git
 cd VoiceCraft
 
-# 2. assumes you have docker installed with nvidia container container-toolkit
+# 2. assumes you have docker installed with nvidia container container-toolkit (windows has this built into the driver)
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.13.5/install-guide.html
 # sudo apt-get install -y nvidia-container-toolkit-base || yay -Syu nvidia-container-toolkit || echo etc...
 
 # 3. Try to start an existing container otherwise create a new one passing in all GPUs
-./start-jupyter.sh
+./start-jupyter.sh  # linux
+start-jupyter.bat   # windows
 
 # 4. now open a webpage on the host box to the URL shown at the bottom of:
 docker logs jupyter
