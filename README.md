@@ -11,6 +11,8 @@ To clone or edit an unseen voice, VoiceCraft needs only a few seconds of referen
 :star: 03/28/2024: Model weights are up on HuggingFace🤗 [here](https://huggingface.co/pyp1/VoiceCraft/tree/main)!
 
 ## QuickStart
+:star: To try out TTS inference with VoiceCraft, the best way is using docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen. 
+
 Tested on Linux and Windows and should work with any host with docker installed.
 ```bash
 # 1. clone the repo on in a directory on a drive with plenty of free space
@@ -38,11 +40,10 @@ sudo apt-get update
 nvidia-smi
 
 # 7. Now in browser, open inference_tts.ipynb and work through one cell at a time
-echo GOOD LUCK AND BE NICE
+echo GOOD LUCK
 ```
 
 ## TODO
-The TODOs left will be completed by the end of March 2024.
 - [x] Codebase upload
 - [x] Environment setup
 - [x] Inference demo for speech editing and TTS

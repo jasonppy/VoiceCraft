@@ -23,5 +23,7 @@ thumbs.db
 *l40*
 *a40*
 
+src/audiocraft
+
 !/demo/
 !/demo/*
