@@ -24,7 +24,7 @@ To clone or edit an unseen voice, VoiceCraft needs only a few seconds of referen
 ## How to run TTS inference 
 There are two ways: 
 1. with docker. see [quickstart](#quickstart)
-2. without docker. see [envrionment setup](#environment-setup)
+2. without docker. see [environment setup](#environment-setup)
 
 When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
 
@@ -57,7 +57,7 @@ sudo apt-get update
 # 6. confirm video card(s) are visible inside container
 nvidia-smi
 
-# 7. Now in browser, open inference_tts.ipynb and work through one cell at a time
+# 7. now in the browser, open inference_tts.ipynb and work through one cell at a time
 echo GOOD LUCK
 ```
 
@@ -77,7 +77,7 @@ pip install datasets==2.16.0
 pip install torchmetrics==0.11.1
 # install MFA for getting forced-alignment, this could take a few minutes
 conda install -c conda-forge montreal-forced-aligner=2.2.17 openfst=1.8.2 kaldi=5.5.1068
-# conda install pocl # above gives an warning for installing pocl, not sure if really need this
+# conda install pocl # above gives an warning for installing pocl, not sure if you really need this
 
 # to run ipynb
 conda install -n voicecraft ipykernel --update-deps --force-reinstall
@@ -141,7 +141,7 @@ transducer("hello").output_string
 ``` -->
 
 ## Acknowledgement
-We thank Feiteng for his [VALL-E reproduction](https://github.com/lifeiteng/vall-e), and we thank audiocraft team for open-sourcing [encodec](https://github.com/facebookresearch/audiocraft).
+We thank Feiteng for his [VALL-E reproduction](https://github.com/lifeiteng/vall-e), and we thank the audiocraft team for open-sourcing [encodec](https://github.com/facebookresearch/audiocraft).
 
 ## Citation
 ```
