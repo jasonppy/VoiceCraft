@@ -24,11 +24,11 @@ To clone or edit an unseen voice, VoiceCraft needs only a few seconds of referen
 ## How to run TTS inference 
 There are two ways: 
 1. with docker. see [quickstart](#quickstart)
-2. without docker. see [envrionment setup](#environment-setup)
+2. without docker. see [environment setup](#environment-setup)
 
 When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
 
-If you want to do model development such as training/finetuning, I recommend following [envrionment setup](#environment-setup) and [training](#training).
+If you want to do model development such as training/finetuning, I recommend following [environment setup](#environment-setup) and [training](#training).
 
 ## QuickStart
 :star: To try out TTS inference with VoiceCraft, the best way is using docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen. 
