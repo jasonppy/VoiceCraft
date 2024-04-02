@@ -90,6 +90,36 @@ If you have encountered version issues when running things, checkout [environmen
 ## Inference Examples
 Checkout [`inference_speech_editing.ipynb`](./inference_speech_editing.ipynb) and [`inference_tts.ipynb`](./inference_tts.ipynb)
 
+## Gradio
+After environment setup install additional dependencies:
+```bash
+pip install -r gradio_requirements.txt
+```
+
+Run gradio server from terminal or [`gradio_app.ipynb`](./gradio_app.ipynb):
+```bash
+python gradio_app.py
+```
+It is ready to use on [default url](http://127.0.0.1:7860).
+
+### How to use it
+1. (optionally) Select models
+2. Load models
+3. Transcribe
+4. (optionally) Tweak some parameters
+5. Run
+6. (optionally) Rerun part-by-part in Long TTS mode
+
+### Some features
+Smart transcript: write only what you want to generate, but don't work if you edit original transcript
+
+TTS mode: Zero-shot TTS
+
+Edit mode: Speech editing
+
+Long TTS mode: Easy TTS on long texts
+
+
 ## Training
 To train an VoiceCraft model, you need to prepare the following parts: 
 1. utterances and their transcripts
