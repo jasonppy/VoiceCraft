@@ -13,11 +13,11 @@ docker run -it -d ^
     -e JUPYTER_TOKEN=mytoken ^
     -w "/home/%username%" ^
     -v "%cd%":"/home/%username%/work" ^
-    jupyter/base-notebook
+    voicecraft
 
 if %errorlevel% == 0 (
     echo Jupyter container created and running.
-    
+
     echo Jupyter container is running.
     echo To access the Jupyter web UI, please follow these steps:
     echo 1. Open your web browser
