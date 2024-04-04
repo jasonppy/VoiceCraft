@@ -111,7 +111,7 @@ It is ready to use on [default url](http://127.0.0.1:7860).
 6. (optionally) Rerun part-by-part in Long TTS mode
 
 ### Some features
-Smart transcript: write only what you want to generate, but don't work if you edit original transcript
+Smart transcript: write only what you want to generate
 
 TTS mode: Zero-shot TTS
 
