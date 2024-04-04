@@ -21,8 +21,8 @@ To clone or edit an unseen voice, VoiceCraft needs only a few seconds of referen
 - [ ] HuggingFace Spaces demo
 - [ ] Better guidance on training/finetuning
 
-## How to run TTS inference 
-There are two ways: 
+## How to run TTS inference
+There are two ways:
 1. with docker. see [quickstart](#quickstart)
 2. without docker. see [envrionment setup](#environment-setup)
 
@@ -31,7 +31,7 @@ When you are inside the docker image or you have installed all dependencies, Che
 If you want to do model development such as training/finetuning, I recommend following [envrionment setup](#environment-setup) and [training](#training).
 
 ## QuickStart
-:star: To try out TTS inference with VoiceCraft, the best way is using docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen. 
+:star: To try out TTS inference with VoiceCraft, the best way is using docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen.
 
 Tested on Linux and Windows and should work with any host with docker installed.
 ```bash
@@ -43,23 +43,26 @@ cd VoiceCraft
 # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.13.5/install-guide.html
 # sudo apt-get install -y nvidia-container-toolkit-base || yay -Syu nvidia-container-toolkit || echo etc...
 
-# 3. Try to start an existing container otherwise create a new one passing in all GPUs
+# 3. First build the docker image
+docker build --tag "voicecraft" .
+
+# 4. Try to start an existing container otherwise create a new one passing in all GPUs
 ./start-jupyter.sh  # linux
 start-jupyter.bat   # windows
 
-# 4. now open a webpage on the host box to the URL shown at the bottom of:
+# 5. now open a webpage on the host box to the URL shown at the bottom of:
 docker logs jupyter
 
-# 5. optionally look inside from another terminal
+# 6. optionally look inside from another terminal
 docker exec -it jupyter /bin/bash
 export USER=(your_linux_username_used_above)
 export HOME=/home/$USER
 sudo apt-get update
 
-# 6. confirm video card(s) are visible inside container
+# 7. confirm video card(s) are visible inside container
 nvidia-smi
 
-# 7. Now in browser, open inference_tts.ipynb and work through one cell at a time
+# 8. Now in browser, open inference_tts.ipynb and work through one cell at a time
 echo GOOD LUCK
 ```
 
@@ -121,13 +124,13 @@ Long TTS mode: Easy TTS on long texts
 
 
 ## Training
-To train an VoiceCraft model, you need to prepare the following parts: 
+To train an VoiceCraft model, you need to prepare the following parts:
 1. utterances and their transcripts
 2. encode the utterances into codes using e.g. Encodec
 3. convert transcripts into phoneme sequence, and a phoneme set (we named it vocab.txt)
 4. manifest (i.e. metadata)
 
-Step 1,2,3 are handled in [./data/phonemize_encodec_encode_hf.py](./data/phonemize_encodec_encode_hf.py), where 
+Step 1,2,3 are handled in [./data/phonemize_encodec_encode_hf.py](./data/phonemize_encodec_encode_hf.py), where
 1. Gigaspeech is downloaded through HuggingFace. Note that you need to sign an agreement in order to download the dataset (it needs your auth token)
 2. phoneme sequence and encodec codes are also extracted using the script.
 
@@ -149,7 +152,7 @@ python phonemize_encodec_encode_hf.py \
 where encodec_model_path is avaliable [here](https://huggingface.co/pyp1/VoiceCraft). This model is trained on Gigaspeech XL, it has 56M parameters, 4 codebooks, each codebook has 2048 codes. Details are described in our [paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf). If you encounter OOM during extraction, try decrease the batch_size and/or max_len.
 The extracted codes, phonemes, and vocab.txt will be stored at `path/to/store_extracted_codes_and_phonemes/${dataset_size}/{encodec_16khz_4codebooks,phonemes,vocab.txt}`.
 
-As for manifest, please download train.txt and validation.txt from [here](https://huggingface.co/datasets/pyp1/VoiceCraft_RealEdit/tree/main), and put them under `path/to/store_extracted_codes_and_phonemes/manifest/`. Please also download vocab.txt from [here](https://huggingface.co/datasets/pyp1/VoiceCraft_RealEdit/tree/main) if you want to use our pretrained VoiceCraft model (so that the phoneme-to-token matching is the same). 
+As for manifest, please download train.txt and validation.txt from [here](https://huggingface.co/datasets/pyp1/VoiceCraft_RealEdit/tree/main), and put them under `path/to/store_extracted_codes_and_phonemes/manifest/`. Please also download vocab.txt from [here](https://huggingface.co/datasets/pyp1/VoiceCraft_RealEdit/tree/main) if you want to use our pretrained VoiceCraft model (so that the phoneme-to-token matching is the same).
 
 Now, you are good to start training!
 
@@ -168,7 +171,7 @@ first install it with `pip install g2p`
 ```python
 from g2p import make_g2p
 transducer = make_g2p('eng', 'eng-ipa')
-transducer("hello").output_string 
+transducer("hello").output_string
 # it will output: 'hʌloʊ'
 ``` -->
 

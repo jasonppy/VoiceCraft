@@ -16,7 +16,7 @@ docker run -it \
     -e GRANT_SUDO=yes \
     -w "/home/${NB_USER}" \
     -v "$PWD":"/home/$USER/work" \
-    jupyter/base-notebook
+    voicecraft
 
 ## `docker logs jupyter` to get the URL link and token e.g.
 ## http://127.0.0.1:8888/lab?token=blahblahblahblabhlaabhalbhalbhal
