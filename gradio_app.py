@@ -14,6 +14,8 @@ import numpy as np
 import random
 import uuid
 
+os.chdir("/content/VoiceCraft-gradio-colab")
+os.environ['USER'] = 'aaa'
 
 TMP_PATH = os.getenv("TMP_PATH", "./demo/temp")
 device = "cuda" if torch.cuda.is_available() else "cpu"
