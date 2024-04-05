@@ -8,7 +8,6 @@ build:
     - "libglib2.0-0"
     - ffmpeg
     - espeak-ng
-    # - cmake
   python_version: "3.9.16"
   python_packages:
     - torch==2.0.1
