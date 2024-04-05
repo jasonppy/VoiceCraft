@@ -15,7 +15,7 @@ import random
 import uuid
 
 
-TMP_PATH = "./demo/temp"
+TMP_PATH = os.getenv("TMP_PATH", "./demo/temp")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 whisper_model, align_model, voicecraft_model = None, None, None
 

@@ -111,6 +111,7 @@ pip install -r gradio_requirements.txt
 Run gradio server from terminal or [`gradio_app.ipynb`](./gradio_app.ipynb):
 ```bash
 python gradio_app.py
+TMP_PATH=/tmp python gradio_app.py # if you want to change tmp folder path
 ```
 It is ready to use on [default url](http://127.0.0.1:7860).
 
