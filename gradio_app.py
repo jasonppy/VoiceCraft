@@ -75,9 +75,6 @@ class WhisperxModel:
 def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, voicecraft_model_name):
     global transcribe_model, align_model, voicecraft_model
 
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
     if alignment_model_name is not None:
         align_model = WhisperxAlignModel()
 
@@ -178,7 +175,6 @@ def align(seed, transcript, audio_path):
     } for fragment in fragments["fragments"]]
     segments = align_model.align(segments, audio_path)
     state = get_transcribe_state(segments)
-    print(state)
 
     return [
         state["transcript_with_start_time"], state["transcript_with_end_time"],
