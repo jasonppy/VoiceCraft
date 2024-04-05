@@ -1,6 +1,4 @@
 import os
- os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
- os.environ["CUDA_VISIBLE_DEVICES"] = "0" # for local use
 import gradio as gr
 import torch
 import torchaudio
@@ -14,6 +12,8 @@ import numpy as np
 import random
 import uuid
 
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.chdir("/content/VoiceCraft-gradio-colab")
 os.environ['USER'] = 'aaa'
 
