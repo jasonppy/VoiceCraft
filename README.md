@@ -1,7 +1,8 @@
 # VoiceCraft Gradio Colab
-Made for those who lacked a dedicated GPU and those who wanted [the friendly GUI by @zuev-stepan](https://github.com/zuev-stepan/VoiceCraft-gradio). Potato programmer brain here so all code credits to @jasonppy, @zuev-stepan and others who contributed in their code. 
 
-COLAB LINK : HOLD ON I AM UPDATING
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Sewlell/VoiceCraft-gradio-colab/blob/master/voicecraft.ipynb)
+
+Made for those who lacked a dedicated GPU and those who wanted [the friendly GUI by @zuev-stepan](https://github.com/zuev-stepan/VoiceCraft-gradio). Potato programmer brain here so all code credits to @jasonppy, @zuev-stepan and others who contributed in their code. 
 
 # VoiceCraft: Zero-Shot Speech Editing and Text-to-Speech in the Wild
 [Demo](https://jasonppy.github.io/VoiceCraft_web) [Paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf)
