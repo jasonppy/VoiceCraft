@@ -1,5 +1,7 @@
 # VoiceCraft: Zero-Shot Speech Editing and Text-to-Speech in the Wild
-[Demo](https://jasonppy.github.io/VoiceCraft_web) [Paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf)
+[Demo](https://jasonppy.github.io/VoiceCraft_web) [Paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf) 
+[![Replicate](https://replicate.com/cjwbw/voicecraft/badge)](https://replicate.com/cjwbw/voicecraft) 
+
 
 
 ### TL;DR
