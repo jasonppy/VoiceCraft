@@ -75,7 +75,7 @@ class Predictor(BasePredictor):
             choices=[
                 "speech_editing-substitution",
                 "speech_editing-insertion",
-                "speech_editing-sdeletion",
+                "speech_editing-deletion",
                 "zero-shot text-to-speech",
             ],
             default="speech_editing-substitution",
@@ -89,7 +89,7 @@ class Predictor(BasePredictor):
         ),
         cut_off_sec: float = Input(
             description="Valid/Required for zero-shot text-to-speech task. The first seconds of the original audio that are used for zero-shot text-to-speech (TTS). 3 sec of reference is generally enough for high quality voice cloning, but longer is generally better, try e.g. 3~6 sec",
-            default=3.01,
+            default=None,
         ),
         orig_transcript_until_cutoff_time: str = Input(
             description="Valid/Required for zero-shot text-to-speech task. Transcript of the original audio file until the cut_off_sec specified above. This process will be improved and made automatically later",
@@ -123,7 +123,8 @@ class Predictor(BasePredictor):
         if task == "zero-shot text-to-speech":
             assert (
                 orig_transcript_until_cutoff_time is not None
-            ), "Please provide orig_transcript_until_cutoff_time for zero-shot text-to-speech task."
+                and cut_off_sec is not None
+            ), "Please provide cut_off_sec and orig_transcript_until_cutoff_time for zero-shot text-to-speech task."
         if seed is None:
             seed = int.from_bytes(os.urandom(2), "big")
         print(f"Using seed: {seed}")
@@ -169,7 +170,7 @@ class Predictor(BasePredictor):
 
         sample_batch_size = 4  # NOTE: if the if there are long silence or unnaturally strecthed words, increase sample_batch_size to 5 or higher. What this will do to the model is that the model will run sample_batch_size examples of the same audio, and pick the one that's the shortest. So if the speech rate of the generated is too fast change it to a smaller number.
 
-        if task == "":
+        if task == "zero-shot text-to-speech":
             assert (
                 cut_off_sec < audio_dur
             ), f"cut_off_sec {cut_off_sec} is larger than the audio duration {audio_dur}"
