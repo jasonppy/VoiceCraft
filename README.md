@@ -83,6 +83,10 @@ conda install -c conda-forge montreal-forced-aligner=2.2.17 openfst=1.8.2 kaldi=
 
 # to run ipynb
 conda install -n voicecraft ipykernel --no-deps --force-reinstall
+
+# below is only needed if you want to run gradio_app.py
+sudo apt-get install espeak # NOTE: only required if you want to use gradio_app, which is used by whisperx for forced alignment
+sudo apt-get install libespeak-dev # NOTE: only required if you want to use gradio_app, which is used by whisperx for forced alignment
 ```
 
 If you have encountered version issues when running things, checkout [environment.yml](./environment.yml) for exact matching.
