@@ -235,10 +235,10 @@ def run(seed, left_margin, right_margin, codec_audio_sr, codec_sr, top_k, top_p,
                 target_transcript = ""
                 for word in transcribe_state["words_info"]:
                     if word["end"] < prompt_end_time:
-                        target_transcript += word["word"]
+                        target_transcript += word["word"] + (" " if word["word"][-1] != " " else "")
                     elif (word["start"] + word["end"]) / 2 < prompt_end_time:
                         # include part of the word it it's big, but adjust prompt_end_time
-                        target_transcript += word["word"]
+                        target_transcript += word["word"] + (" " if word["word"][-1] != " " else "")
                         prompt_end_time = word["end"]
                         break
                     else:
@@ -263,13 +263,13 @@ def run(seed, left_margin, right_margin, codec_audio_sr, codec_sr, top_k, top_p,
                 target_transcript = ""
                 for word in transcribe_state["words_info"]:
                     if word["start"] < edit_start_time:
-                        target_transcript += word["word"]
+                        target_transcript += word["word"] + (" " if word["word"][-1] != " " else "")
                     else:
                         break
                 target_transcript += f" {sentence}"
                 for word in transcribe_state["words_info"]:
                     if word["end"] > edit_end_time:
-                        target_transcript += word["word"]
+                        target_transcript += word["word"] + (" " if word["word"][-1] != " " else "")
             else:
                 target_transcript = sentence
 
