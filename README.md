@@ -7,8 +7,21 @@ VoiceCraft is a token infilling neural codec language model, that achieves state
 
 To clone or edit an unseen voice, VoiceCraft needs only a few seconds of reference.
 
+## How to run inference
+There are three ways:
+
+1. with Google Colab. see [quickstart colab](#quickstart-colab)
+2. with docker. see [quickstart docker](#quickstart-docker)
+3. without docker. see [environment setup](#environment-setup)
+
+When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
+
+If you want to do model development such as training/finetuning, I recommend following [envrionment setup](#environment-setup) and [training](#training).
+
 ## News
-:star: 03/28/2024: Model weights are up on HuggingFace🤗 [here](https://huggingface.co/pyp1/VoiceCraft/tree/main)!
+:star: 03/28/2024: Model weights for giga330M and giga830M are up on HuggingFace🤗 [here](https://huggingface.co/pyp1/VoiceCraft/tree/main)!
+
+:star: 04/05/2024: I finetuned giga330M with the TTS objective on gigaspeech and 1/5 of librilight, the model outperforms giga830M on TTS. Weights are [here](https://huggingface.co/pyp1/VoiceCraft/tree/main). Make sure maximal prompt + generation length <= 16 seconds (due to our limited compute, we had to drop utterances longer than 16s in training data)
 
 ## TODO
 - [x] Codebase upload
@@ -16,22 +29,22 @@ To clone or edit an unseen voice, VoiceCraft needs only a few seconds of referen
 - [x] Inference demo for speech editing and TTS
 - [x] Training guidance
 - [x] RealEdit dataset and training manifest
-- [x] Model weights (both 330M and 830M, the former seems to be just as good)
-- [ ] Write colab notebooks for better hands-on experience
+- [x] Model weights (giga330M.pth, giga830M.pth, and gigaHalfLibri330M_TTSEnhanced_max16s.pth)
+- [x] Write colab notebooks for better hands-on experience
 - [ ] HuggingFace Spaces demo
 - [ ] Better guidance on training/finetuning
 
-## How to run TTS inference
-There are two ways:
-1. with docker. see [quickstart](#quickstart)
-2. without docker. see [envrionment setup](#environment-setup)
 
-When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
+## QuickStart Colab
 
-If you want to do model development such as training/finetuning, I recommend following [envrionment setup](#environment-setup) and [training](#training).
+:star: To try out speech editing or TTS Inference with VoiceCraft, the simplest way is using Google Colab.
+Instructions to run are on the Colab itself.
 
-## QuickStart
-:star: To try out TTS inference with VoiceCraft, the best way is using docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen.
+1. To try [Speech Editing](https://colab.research.google.com/drive/1FV7EC36dl8UioePY1xXijXTMl7X47kR_?usp=sharing)
+2. To try [TTS Inference](https://colab.research.google.com/drive/1lch_6it5-JpXgAQlUTRRI2z2_rk5K67Z?usp=sharing)
+
+## QuickStart Docker
+:star: To try out TTS inference with VoiceCraft, you can also use docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen.
 
 Tested on Linux and Windows and should work with any host with docker installed.
 ```bash
