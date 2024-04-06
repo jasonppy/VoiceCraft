@@ -98,7 +98,9 @@ def inference_one_sample(model, model_args, phn2num, text_tokenizer, audio_token
     gen_sample = audio_tokenizer.decode(
         [(gen_frames, None)]
     )
-
+    #Empty cuda cache between runs
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     # return
     return concat_sample, gen_sample
 
