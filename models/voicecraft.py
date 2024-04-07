@@ -1416,7 +1416,7 @@ class VoiceCraft(nn.Module):
 
 class VoiceCraftHF(VoiceCraft, PyTorchModelHubMixin,
                    repo_url="https://github.com/jasonppy/VoiceCraft",
-                   tags=["Text-to-Speech, VoiceCraft"]):
+                   tags=["Text-to-Speech", "VoiceCraft"]):
     def __init__(self, config: dict):
         args = Namespace(**config)
         super().__init__(args)
