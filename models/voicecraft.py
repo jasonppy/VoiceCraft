@@ -18,6 +18,7 @@ from .modules.transformer import (
 )
 from .codebooks_patterns import DelayedPatternProvider
 
+from argparse import Namespace
 from huggingface_hub import PyTorchModelHubMixin
 
 
@@ -1415,4 +1416,5 @@ class VoiceCraft(nn.Module):
 
 class VoiceCraftHF(VoiceCraft, PyTorchModelHubMixin):
     def __init__(self, config: dict):
-        super().__init__(config)
+        args = Namespace(**config)
+        super().__init__(args)
