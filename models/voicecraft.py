@@ -18,6 +18,10 @@ from .modules.transformer import (
 )
 from .codebooks_patterns import DelayedPatternProvider
 
+from argparse import Namespace
+from huggingface_hub import PyTorchModelHubMixin
+
+
 def top_k_top_p_filtering(
     logits, top_k=0, top_p=1.0, filter_value=-float("Inf"), min_tokens_to_keep=1
 ):
@@ -1408,3 +1412,11 @@ class VoiceCraft(nn.Module):
             flatten_gen = flatten_gen - int(self.args.n_special)
 
         return res, flatten_gen[0].unsqueeze(0)
+    
+
+class VoiceCraftHF(VoiceCraft, PyTorchModelHubMixin):
+    repo_url="https://github.com/jasonppy/VoiceCraft",
+    tags=["Text-to-Speech", "VoiceCraft"]
+    def __init__(self, config: dict):
+        args = Namespace(**config)
+        super().__init__(args)

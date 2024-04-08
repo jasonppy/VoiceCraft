@@ -100,6 +100,7 @@ conda install -c conda-forge montreal-forced-aligner=2.2.17 openfst=1.8.2 kaldi=
 # install MFA english dictionary and model
 mfa model download dictionary english_us_arpa
 mfa model download acoustic english_us_arpa
+pip install huggingface_hub
 # conda install pocl # above gives an warning for installing pocl, not sure if really need this
 
 # to run ipynb
