@@ -100,7 +100,7 @@ conda install -c conda-forge montreal-forced-aligner=2.2.17 openfst=1.8.2 kaldi=
 # install MFA english dictionary and model
 mfa model download dictionary english_us_arpa
 mfa model download acoustic english_us_arpa
-pip install huggingface_hub
+# pip install huggingface_hub
 # conda install pocl # above gives an warning for installing pocl, not sure if really need this
 
 # to run ipynb
@@ -154,7 +154,7 @@ bash e830M.sh
 It's the same procedure to prepare your own custom dataset. Make sure that if 
 
 ## Finetuning
-You also need to do step 1-4 as Training, and I recommend to use AdamW for optimization if you finetune a pretrained model for better stability. checkout script `/home/pyp/VoiceCraft/z_scripts/e830M_ft.sh`.
+You also need to do step 1-4 as Training, and I recommend to use AdamW for optimization if you finetune a pretrained model for better stability. checkout script `./z_scripts/e830M_ft.sh`.
 
 If your dataset introduce new phonemes (which is very likely) that doesn't exist in the giga checkpoint, make sure you combine the original phonemes with the phoneme from your data when construction vocab. And you need to adjust `--text_vocab_size` and `--text_pad_token` so that the former is bigger than or equal to you vocab size, and the latter has the same value as `--text_vocab_size` (i.e. `--text_pad_token` is always the last token). Also since the text embedding are now of a different size, make sure you modify the weights loading part so that I won't crash (you could skip loading `text_embedding` or only load the existing part, and randomly initialize the new)
 

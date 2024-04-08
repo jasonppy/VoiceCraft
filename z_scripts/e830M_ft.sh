@@ -11,7 +11,7 @@ exp_root="path/to/store/exp_results"
 exp_name=e830M_ft
 dataset_dir="path/to/stored_extracted_codes_and_phonemes/xl" # xs if you only extracted xs in previous step
 encodec_codes_folder_name="encodec_16khz_4codebooks"
-load_model_from="/home/pyp/VoiceCraft/pretrained_models/giga830M.pth"
+load_model_from="./pretrained_models/giga830M.pth"
 
 # export CUDA_LAUNCH_BLOCKING=1 # for debugging
 
@@ -34,7 +34,7 @@ torchrun --nnodes=1 --rdzv-backend=c10d --rdzv-endpoint=localhost:41977 --nproc_
 --nhead 16 \
 --num_decoder_layers 16 \
 --max_num_tokens 20000 \
---gradient_accumulation_steps 20 \
+--gradient_accumulation_steps 12 \
 --val_max_num_tokens 6000 \
 --num_buckets 6 \
 --audio_max_length 20 \
