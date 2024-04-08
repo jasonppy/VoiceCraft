@@ -95,6 +95,7 @@ pip install datasets==2.16.0
 pip install torchmetrics==0.11.1
 # install MFA for getting forced-alignment, this could take a few minutes
 conda install -c conda-forge montreal-forced-aligner=2.2.17 openfst=1.8.2 kaldi=5.5.1068
+pip install huggingface_hub
 # conda install pocl # above gives an warning for installing pocl, not sure if really need this
 
 # to run ipynb
