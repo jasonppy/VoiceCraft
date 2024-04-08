@@ -30,9 +30,11 @@ If you want to do model development such as training/finetuning, I recommend fol
 - [x] Training guidance
 - [x] RealEdit dataset and training manifest
 - [x] Model weights (giga330M.pth, giga830M.pth, and gigaHalfLibri330M_TTSEnhanced_max16s.pth)
+- [x] Better guidance on training/finetuning
 - [x] Write colab notebooks for better hands-on experience
 - [ ] HuggingFace Spaces demo
-- [ ] Better guidance on training/finetuning
+- [ ] Command line
+- [ ] Improve efficiency
 
 
 ## QuickStart Colab
@@ -95,6 +97,9 @@ pip install datasets==2.16.0
 pip install torchmetrics==0.11.1
 # install MFA for getting forced-alignment, this could take a few minutes
 conda install -c conda-forge montreal-forced-aligner=2.2.17 openfst=1.8.2 kaldi=5.5.1068
+# install MFA english dictionary and model
+mfa model download dictionary english_us_arpa
+mfa model download acoustic english_us_arpa
 # conda install pocl # above gives an warning for installing pocl, not sure if really need this
 
 # to run ipynb
@@ -145,18 +150,15 @@ cd ./z_scripts
 bash e830M.sh
 ```
 
+It's the same procedure to prepare your own custom dataset. Make sure that if 
+
+## Finetuning
+You also need to do step 1-4 as Training, and I recommend to use AdamW for optimization if you finetune a pretrained model for better stability. checkout script `/home/pyp/VoiceCraft/z_scripts/e830M_ft.sh`.
+
+If your dataset introduce new phonemes (which is very likely) that doesn't exist in the giga checkpoint, make sure you combine the original phonemes with the phoneme from your data when construction vocab. And you need to adjust `--text_vocab_size` and `--text_pad_token` so that the former is bigger than or equal to you vocab size, and the latter has the same value as `--text_vocab_size` (i.e. `--text_pad_token` is always the last token). Also since the text embedding are now of a different size, make sure you modify the weights loading part so that I won't crash (you could skip loading `text_embedding` or only load the existing part, and randomly initialize the new)
 
 ## License
 The codebase is under CC BY-NC-SA 4.0 ([LICENSE-CODE](./LICENSE-CODE)), and the model weights are under Coqui Public Model License 1.0.0 ([LICENSE-MODEL](./LICENSE-MODEL)). Note that we use some of the code from other repository that are under different licenses: `./models/codebooks_patterns.py` is under MIT license; `./models/modules`, `./steps/optim.py`, `data/tokenizer.py` are under Apache License, Version 2.0; the phonemizer we used is under GNU 3.0 License.
-
-<!-- How to use g2p to convert english text into IPA phoneme sequence
-first install it with `pip install g2p`
-```python
-from g2p import make_g2p
-transducer = make_g2p('eng', 'eng-ipa')
-transducer("hello").output_string
-# it will output: 'hʌloʊ'
-``` -->
 
 ## Acknowledgement
 We thank Feiteng for his [VALL-E reproduction](https://github.com/lifeiteng/vall-e), and we thank audiocraft team for open-sourcing [encodec](https://github.com/facebookresearch/audiocraft).
