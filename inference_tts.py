@@ -258,6 +258,10 @@ def parse_arguments():
                         help="Output directory where the generated audio "
                              "files will be saved. Default: "
                              "'./demo/generated_tts'")
+    parser.add_argument("--cut-off-sec", type=float, default=3.0,
+                        help="Cut-off time in seconds for the audio prompt ("
+                             "hundredths of a second are acceptable). "
+                             "Default: 3.0")
     parser.add_argument("--left_margin", type=float, default=0.08,
                         help="Left margin of the audio segment used for "
                              "speech editing. This is not used for "
@@ -384,7 +388,7 @@ def main():
     align_fn = f"{align_temp}/{filename}.csv"
 
     # Decide which part of the audio to use as prompt based on forced alignment
-    cut_off_sec = .03
+    cut_off_sec = args.cut_off_sec
 
     info = torchaudio.info(audio_fn)
     audio_dur = info.num_frames / info.sample_rate
