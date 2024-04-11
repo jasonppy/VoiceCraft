@@ -1,6 +1,5 @@
 # VoiceCraft: Zero-Shot Speech Editing and Text-to-Speech in the Wild
-[Demo](https://jasonppy.github.io/VoiceCraft_web) [Paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf)
-
+[![Paper](https://img.shields.io/badge/arXiv-2301.12503-brightgreen.svg?style=flat-square)](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf)  [![githubio](https://img.shields.io/badge/GitHub.io-Audio_Samples-blue?logo=Github&style=flat-square)](https://jasonppy.github.io/VoiceCraft_web/)  [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/pyp1/VoiceCraft_gradio)  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1IOjpglQyMTO2C3Y94LD9FY0Ocn-RJRg6?usp=sharing)
 
 ### TL;DR
 VoiceCraft is a token infilling neural codec language model, that achieves state-of-the-art performance on both **speech editing** and **zero-shot text-to-speech (TTS)** on in-the-wild data including audiobooks, internet videos, and podcasts.
@@ -8,20 +7,22 @@ VoiceCraft is a token infilling neural codec language model, that achieves state
 To clone or edit an unseen voice, VoiceCraft needs only a few seconds of reference.
 
 ## How to run inference
-There are three ways:
+There are three ways (besides running Gradio in Colab):
 
-1. with Google Colab. see [quickstart colab](#quickstart-colab)
+1. More flexible inference beyond Gradio UI in Google Colab. see [quickstart colab](#quickstart-colab)
 2. with docker. see [quickstart docker](#quickstart-docker)
-3. without docker. see [environment setup](#environment-setup)
+3. without docker. see [environment setup](#environment-setup). You can also run gradio locally if you choose this option
 
 When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
 
 If you want to do model development such as training/finetuning, I recommend following [envrionment setup](#environment-setup) and [training](#training).
 
 ## News
-:star: 03/28/2024: Model weights for giga330M and giga830M are up on HuggingFace🤗 [here](https://huggingface.co/pyp1/VoiceCraft/tree/main)!
+:star: 04/11/2024: VoiceCraft Gradio is now available on HuggingFace Spaces [here](https://huggingface.co/spaces/pyp1/VoiceCraft_gradio)! Major thanks to [@zuev-stepan](https://github.com/zuev-stepan), [@Sewlell](https://github.com/Sewlell), [@pgsoar](https://github.com/pgosar) [@Ph0rk0z](https://github.com/Ph0rk0z). 
 
-:star: 04/05/2024: I finetuned giga330M with the TTS objective on gigaspeech and 1/5 of librilight, the model outperforms giga830M on TTS. Weights are [here](https://huggingface.co/pyp1/VoiceCraft/tree/main). Make sure maximal prompt + generation length <= 16 seconds (due to our limited compute, we had to drop utterances longer than 16s in training data)
+:star: 04/05/2024: I finetuned giga330M with the TTS objective on gigaspeech and 1/5 of librilight. Weights are [here](https://huggingface.co/pyp1/VoiceCraft/tree/main). Make sure maximal prompt + generation length <= 16 seconds (due to our limited compute, we had to drop utterances longer than 16s in training data). Even stronger models forthcomming, stay tuned!
+
+:star: 03/28/2024: Model weights for giga330M and giga830M are up on HuggingFace🤗 [here](https://huggingface.co/pyp1/VoiceCraft/tree/main)!
 
 ## TODO
 - [x] Codebase upload
@@ -31,10 +32,11 @@ If you want to do model development such as training/finetuning, I recommend fol
 - [x] RealEdit dataset and training manifest
 - [x] Model weights (giga330M.pth, giga830M.pth, and gigaHalfLibri330M_TTSEnhanced_max16s.pth)
 - [x] Better guidance on training/finetuning
-- [x] Write colab notebooks for better hands-on experience
-- [ ] HuggingFace Spaces demo
+- [x] Colab notebooks
+- [x] HuggingFace Spaces demo
 - [ ] Command line
 - [ ] Improve efficiency
+
 
 
 ## QuickStart Colab
@@ -111,6 +113,46 @@ If you have encountered version issues when running things, checkout [environmen
 
 ## Inference Examples
 Checkout [`inference_speech_editing.ipynb`](./inference_speech_editing.ipynb) and [`inference_tts.ipynb`](./inference_tts.ipynb)
+
+## Gradio
+### Run in colab
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1IOjpglQyMTO2C3Y94LD9FY0Ocn-RJRg6?usp=sharing)
+
+### Run locally
+After environment setup install additional dependencies:
+```bash
+apt-get install -y espeak espeak-data libespeak1 libespeak-dev
+apt-get install -y festival*
+apt-get install -y build-essential
+apt-get install -y flac libasound2-dev libsndfile1-dev vorbis-tools
+apt-get install -y libxml2-dev libxslt-dev zlib1g-dev
+pip install -r gradio_requirements.txt
+```
+
+Run gradio server from terminal or [`gradio_app.ipynb`](./gradio_app.ipynb):
+```bash
+python gradio_app.py
+```
+It is ready to use on [default url](http://127.0.0.1:7860).
+
+### How to use it
+1. (optionally) Select models
+2. Load models
+3. Transcribe
+4. (optionally) Tweak some parameters
+5. Run
+6. (optionally) Rerun part-by-part in Long TTS mode
+
+### Some features
+Smart transcript: write only what you want to generate
+
+TTS mode: Zero-shot TTS
+
+Edit mode: Speech editing
+
+Long TTS mode: Easy TTS on long texts
+
 
 ## Training
 To train an VoiceCraft model, you need to prepare the following parts:
