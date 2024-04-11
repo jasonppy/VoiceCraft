@@ -13,7 +13,7 @@ import random
 import uuid
 
 
-DEMO_PATH = os.getenv("DEMO_PATH", ".demo")
+DEMO_PATH = os.getenv("DEMO_PATH", "./demo")
 TMP_PATH = os.getenv("TMP_PATH", "./demo/temp")
 MODELS_PATH = os.getenv("MODELS_PATH", "./pretrained_models")
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -371,20 +371,20 @@ demo_original_transcript = " But when I had approached so near to them, the comm
 
 demo_text = {
     "TTS": {
-        "smart": "I cannot believe that the same model can also do text to speech synthesis as well!",
-        "regular": "But when I had approached so near to them, the common I cannot believe that the same model can also do text to speech synthesis as well!"
+        "smart": "I cannot believe that the same model can also do text to speech synthesis too!",
+        "regular": "But when I had approached so near to them, the common I cannot believe that the same model can also do text to speech synthesis too!"
     },
     "Edit": {
         "smart": "saw the mirage of the lake in the distance,",
         "regular": "But when I saw the mirage of the lake in the distance, which the sense deceives, Lost not by distance any of its marks,"
     },
     "Long TTS": {
-        "smart": "You can run TTS on a big text!\n"
+        "smart": "You can run the model on a big text!\n"
                  "Just write it line-by-line. Or sentence-by-sentence.\n"
-                 "If some sentences sound odd, just rerun TTS on them, no need to generate the whole text again!",
-        "regular": "But when I had approached so near to them, the common You can run TTS on a big text!\n"
+                 "If some sentences sound odd, just rerun the model on them, no need to generate the whole text again!",
+        "regular": "But when I had approached so near to them, the common You can run the model on a big text!\n"
                    "But when I had approached so near to them, the common Just write it line-by-line. Or sentence-by-sentence.\n"
-                   "But when I had approached so near to them, the common If some sentences sound odd, just rerun TTS on them, no need to generate the whole text again!"
+                   "But when I had approached so near to them, the common If some sentences sound odd, just rerun the model on them, no need to generate the whole text again!"
     }
 }
 
@@ -602,9 +602,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="VoiceCraft gradio app.")
     
-    parser.add_argument("--demo-path", default=".demo", help="Path to demo directory")
-    parser.add_argument("--tmp-path", default=".demo/temp", help="Path to tmp directory")
-    parser.add_argument("--models-path", default=".pretrained_models", help="Path to voicecraft models directory")
+    parser.add_argument("--demo-path", default="./demo", help="Path to demo directory")
+    parser.add_argument("--tmp-path", default="./demo/temp", help="Path to tmp directory")
+    parser.add_argument("--models-path", default="./pretrained_models", help="Path to voicecraft models directory")
     parser.add_argument("--port", default=7860, type=int, help="App port")
     parser.add_argument("--share", action="store_true", help="Launch with public url")
 
