@@ -316,7 +316,7 @@ def update_input_audio(audio_path):
 
 
 def change_mode(mode):
-    tts_mode_controls, edit_mode_controls, edit_word_mode, split_text, long_tts_sentence_editor
+    # tts_mode_controls, edit_mode_controls, edit_word_mode, split_text, long_tts_sentence_editor
     return [
         gr.Group(visible=mode != "Edit"),
         gr.Group(visible=mode == "Edit"),
