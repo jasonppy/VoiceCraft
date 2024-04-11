@@ -1,9 +1,3 @@
-# VoiceCraft Gradio Colab
-
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Sewlell/VoiceCraft-gradio-colab/blob/master/voicecraft.ipynb)
-
-Made for those who lacked a dedicated GPU and those who wanted [the friendly GUI by @zuev-stepan](https://github.com/zuev-stepan/VoiceCraft-gradio). Potato programmer brain here so all code credits to @jasonppy, @zuev-stepan and others who contributed in their code. 
-
 # VoiceCraft: Zero-Shot Speech Editing and Text-to-Speech in the Wild
 [Demo](https://jasonppy.github.io/VoiceCraft_web) [Paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf)
 
@@ -105,10 +99,6 @@ conda install -c conda-forge montreal-forced-aligner=2.2.17 openfst=1.8.2 kaldi=
 
 # to run ipynb
 conda install -n voicecraft ipykernel --no-deps --force-reinstall
-
-# below is only needed if you want to run gradio_app.py
-sudo apt-get install espeak # NOTE: only required if you want to use gradio_app, which is used by whisperx for forced alignment
-sudo apt-get install libespeak-dev # NOTE: only required if you want to use gradio_app, which is used by whisperx for forced alignment
 ```
 
 If you have encountered version issues when running things, checkout [environment.yml](./environment.yml) for exact matching.
@@ -117,6 +107,11 @@ If you have encountered version issues when running things, checkout [environmen
 Checkout [`inference_speech_editing.ipynb`](./inference_speech_editing.ipynb) and [`inference_tts.ipynb`](./inference_tts.ipynb)
 
 ## Gradio
+### Run in colab
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zuev-stepan/VoiceCraft-gradio/blob/feature/colab-notebook/voicecraft-gradio-colab.ipynb)
+
+### Run locally
 After environment setup install additional dependencies:
 ```bash
 apt-get install -y espeak espeak-data libespeak1 libespeak-dev
@@ -130,7 +125,6 @@ pip install -r gradio_requirements.txt
 Run gradio server from terminal or [`gradio_app.ipynb`](./gradio_app.ipynb):
 ```bash
 python gradio_app.py
-TMP_PATH=/tmp python gradio_app.py # if you want to change tmp folder path
 ```
 It is ready to use on [default url](http://127.0.0.1:7860).
 
