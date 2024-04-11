@@ -615,4 +615,4 @@ if __name__ == "__main__":
     MODELS_PATH = args.models_path
 
     app = get_app()
-    app.launch(share=args.share, server_port=args.port)
+    app.queue().launch(share=args.share, server_port=args.port)
