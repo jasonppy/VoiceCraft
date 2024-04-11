@@ -79,6 +79,9 @@ class WhisperxModel:
 def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, voicecraft_model_name):
     global transcribe_model, align_model, voicecraft_model
 
+    if voicecraft_model_name == "giga330M_TTSEnhanced":
+        voicecraft_model_name = "gigaHalfLibri330M_TTSEnhanced_max16s"
+
     if alignment_model_name is not None:
         align_model = WhisperxAlignModel()
 
@@ -435,7 +438,8 @@ with gr.Blocks() as app:
         with gr.Column(scale=5):
             with gr.Accordion("Select models", open=False) as models_selector:
                 with gr.Row():
-                    voicecraft_model_choice = gr.Radio(label="VoiceCraft model", value="giga830M", choices=["giga330M", "giga830M"])
+                    voicecraft_model_choice = gr.Radio(label="VoiceCraft model", value="giga830M",
+                                                       choices=["giga330M", "giga830M", "giga330M_TTSEnhanced"])
                     whisper_backend_choice = gr.Radio(label="Whisper backend", value="whisperX", choices=["whisper", "whisperX"])
                     whisper_model_choice = gr.Radio(label="Whisper model", value="base.en",
                                                     choices=[None, "base.en", "small.en", "medium.en", "large"])
@@ -500,13 +504,15 @@ with gr.Blocks() as app:
             stop_repetition = gr.Radio(label="stop_repetition", choices=[-1, 1, 2, 3, 4], value=3,
                                        info="if there are long silence in the generated audio, reduce the stop_repetition to 2 or 1. -1 = disabled")
             sample_batch_size = gr.Number(label="speech rate", value=4, precision=0,
-                                          info="The higher the number, the faster the output will be. Under the hood, the model will generate this many samples and choose the shortest one")
+                                          info="The higher the number, the faster the output will be. "
+                                               "Under the hood, the model will generate this many samples and choose the shortest one. "
+                                               "For giga330M_TTSEnhanced, 1 or 2 should be fine since the model is trained to do TTS.")
             seed = gr.Number(label="seed", value=-1, precision=0, info="random seeds always works :)")
             kvcache = gr.Radio(label="kvcache", choices=[0, 1], value=1,
                                 info="set to 0 to use less VRAM, but with slower inference")
             left_margin = gr.Number(label="left_margin", value=0.08, info="margin to the left of the editing segment")
             right_margin = gr.Number(label="right_margin", value=0.08, info="margin to the right of the editing segment")
-            top_p = gr.Number(label="top_p", value=0.8, info="0.8 is a good value, 0.9 is also good")
+            top_p = gr.Number(label="top_p", value=0.9, info="0.9 is a good value, 0.8 is also good")
             temperature = gr.Number(label="temperature", value=1, info="haven't try other values, do not recommend to change")
             top_k = gr.Number(label="top_k", value=0, info="0 means we don't use topk sampling, because we use topp sampling")
             codec_audio_sr = gr.Number(label="codec_audio_sr", value=16000, info='encodec specific, Do not change')
