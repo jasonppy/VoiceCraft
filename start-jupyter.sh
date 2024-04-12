@@ -8,6 +8,7 @@ docker run -it \
     -d \
     --gpus all \
     -p 8888:8888 \
+    -p 7860:7860 \
     --name jupyter \
     --user root \
     -e NB_USER="$USER" \

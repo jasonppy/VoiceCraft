@@ -18,6 +18,10 @@ from .modules.transformer import (
 )
 from .codebooks_patterns import DelayedPatternProvider
 
+from argparse import Namespace
+from huggingface_hub import PyTorchModelHubMixin
+
+
 def top_k_top_p_filtering(
     logits, top_k=0, top_p=1.0, filter_value=-float("Inf"), min_tokens_to_keep=1
 ):
@@ -409,6 +413,10 @@ class VoiceCraft(nn.Module):
                 .expand(-1, self.args.nhead, -1, -1)
                 .reshape(bsz * self.args.nhead, 1, src_len)
             )
+            # Check shapes and resize+broadcast as necessary
+            if xy_attn_mask.shape != _xy_padding_mask.shape:
+                assert xy_attn_mask.ndim + 1 == _xy_padding_mask.ndim, f"xy_attn_mask.shape: {xy_attn_mask.shape}, _xy_padding_mask: {_xy_padding_mask.shape}"
+                xy_attn_mask = xy_attn_mask.unsqueeze(0).repeat(_xy_padding_mask.shape[0], 1, 1)  # Example approach
             xy_attn_mask = xy_attn_mask.logical_or(_xy_padding_mask)
 
             new_attn_mask = torch.zeros_like(xy_attn_mask)
@@ -454,8 +462,10 @@ class VoiceCraft(nn.Module):
             before padding.
         """
         x, x_lens, y, y_lens = batch["x"], batch["x_lens"], batch["y"], batch["y_lens"]
+        if len(x) == 0:
+            return None
         x = x[:, :x_lens.max()] # this deal with gradient accumulation, where x_lens.max() might not be longer than the length of the current slice of x
-        y = y[:, :y_lens.max()]
+        y = y[:, :, :y_lens.max()]
         assert x.ndim == 2, x.shape
         assert x_lens.ndim == 1, x_lens.shape
         assert y.ndim == 3 and y.shape[1] == self.args.n_codebooks, y.shape
@@ -1404,3 +1414,11 @@ class VoiceCraft(nn.Module):
             flatten_gen = flatten_gen - int(self.args.n_special)
 
         return res, flatten_gen[0].unsqueeze(0)
+    
+
+class VoiceCraftHF(VoiceCraft, PyTorchModelHubMixin):
+    repo_url="https://github.com/jasonppy/VoiceCraft",
+    tags=["Text-to-Speech", "VoiceCraft"]
+    def __init__(self, config: dict):
+        args = Namespace(**config)
+        super().__init__(args)
