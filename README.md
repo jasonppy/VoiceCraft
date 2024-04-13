@@ -97,6 +97,7 @@ pip install tensorboard==2.16.2
 pip install phonemizer==3.2.1
 pip install datasets==2.16.0
 pip install torchmetrics==0.11.1
+pip install huggingface_hub==0.22.2
 # install MFA for getting forced-alignment, this could take a few minutes
 conda install -c conda-forge montreal-forced-aligner=2.2.17 openfst=1.8.2 kaldi=5.5.1068
 # install MFA english dictionary and model
