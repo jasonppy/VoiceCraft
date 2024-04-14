@@ -17,6 +17,8 @@ build:
     - phonemizer==3.2.1
     - datasets==2.16.0
     - torchmetrics==0.11.1
+    - whisperx==3.1.1
+    - openai-whisper>=20231117
   run:
     - curl -O https://repo.anaconda.com/miniconda/Miniconda3-py310_23.3.1-0-Linux-x86_64.sh
     - bash Miniconda3-py310_23.3.1-0-Linux-x86_64.sh -b -p /cog/miniconda
