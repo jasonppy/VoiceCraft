@@ -109,15 +109,15 @@ class VoiceCraft(nn.Module):
 
         self.text_embedding = TokenEmbedding(
             dim_model=self.args.d_model,
-            vocab_size=self.n_text_tokens, 
+            vocab_size=self.n_text_tokens,
             dropout=self.args.text_embedding_dropout
         )
 
         self.audio_embedding = nn.ModuleList(
             [
                 TokenEmbedding(
-                dim_model=self.args.audio_embedding_dim, 
-                vocab_size=self.n_audio_tokens[k], 
+                dim_model=self.args.audio_embedding_dim,
+                vocab_size=self.n_audio_tokens[k],
                 dropout=self.args.audio_embedding_dropout
             ) for k in range(self.args.n_codebooks)
             ]
@@ -150,13 +150,13 @@ class VoiceCraft(nn.Module):
             num_layers=self.args.num_decoder_layers,
             norm=LayerNorm(self.args.d_model),
         )
-        
+
         self.predict_layer = nn.ModuleList(
             [
                 nn.Sequential(nn.Linear(self.args.d_model, self.args.audio_vocab_size//2), nn.GELU(), nn.Linear(self.args.audio_vocab_size//2, self.n_audio_tokens[k])) for k in range(self.args.n_codebooks)
             ]
         )
-        
+
         self.accuracy_metrics = nn.ModuleList(
             [MulticlassAccuracy(
                 self.n_audio_tokens[k],
@@ -167,7 +167,7 @@ class VoiceCraft(nn.Module):
             ) for k in range(self.args.n_codebooks)]
         )
 
-    
+
     def prepare_mask_intervals(self, y_lens):
         mask_intervals = []
         non_mask_intervals = []
@@ -203,12 +203,12 @@ class VoiceCraft(nn.Module):
                     temp_mask_end = gap - 1
                     mask_len = random.randint(temp_mask_start, temp_mask_end)
                 ends.append(start + mask_len)
-            
+
             mask_intervals.append([(s,e) for s,e in zip(starts, ends)])
             non_mask_intervals.append([(ns,ne) for ns, ne in zip([0]+ends, starts+[y_len])])
 
         return mask_intervals, non_mask_intervals
-    
+
     def rearrange(self, y, non_mask_intervals, mask_intervals):
         reduced_eog = getattr(self.args, "reduced_eog", 0)
         rearranged_y = []
@@ -223,7 +223,7 @@ class VoiceCraft(nn.Module):
                     cur_y = [torch.cat([y[i, :, item[0]: item[1]], self.eog], dim=-1) for item in non_mask_intervals[i]] + [torch.cat([y[i, :, item[0]: item[1]], self.eog], dim=-1) for item in mask_intervals[i]] # eog is added to each section TODO this is not correct, I should add eog to non_mask_intervals if that segment is not the ending segment (as there is no way for the model to predict eog for those segments, and this will do harm to tts experiment, where the model randomly output eog for the first segment)
             rearranged_y.append(cur_y)
         return rearranged_y
-        
+
     def shift(self, rearranged_y):
         shifted_y = []
         patterns = []
@@ -233,7 +233,7 @@ class VoiceCraft(nn.Module):
             shifted_y.append([item[0].squeeze(0) for item in out]) # the first item is values, later two are indexes and mask
             patterns.append(cur_patterns)
         return shifted_y, patterns
-    
+
     def insert_mask(self, shifted_y):
         inserted_y = []
         mask_position = []
@@ -259,7 +259,7 @@ class VoiceCraft(nn.Module):
             inserted_y.append(cur_inserted_y)
             mask_position.append(cur_mask_position)
         return inserted_y, mask_position, mask_value
-    
+
     def cat_y(self, inserted_y, mask_position, y_lens):
         reduced_eog = getattr(self.args, "reduced_eog", 0)
         cated_y = []
@@ -289,9 +289,9 @@ class VoiceCraft(nn.Module):
         embedded_y = embedded_y.transpose(1,0) # [T,B,D]->[B,T,D]
         for i in range(len(embedded_y)):
             if len(mask_position[i]) > 0:
-                embedded_y[i, mask_position[i]] = self.mask_embedding[mask_value[i]] 
+                embedded_y[i, mask_position[i]] = self.mask_embedding[mask_value[i]]
         return embedded_y
-    
+
     def prepare_input_target(self, y, y_lens):
         # rearrange y
         # assume y shape: [B T K], K is n_codebooks
@@ -328,16 +328,16 @@ class VoiceCraft(nn.Module):
         inserted_y, mask_position, mask_value = self.insert_mask(shifted_y)
         assert inserted_y[0][0].shape[0] == self.args.n_codebooks, inserted_y[0][0].shape[0]
         assert inserted_y[0][1].shape == torch.Size((self.args.n_codebooks, 1)), f"this should be a mask, so should have shape {(self.args.n_codebooks, 1)}, but it's {inserted_y[0][1].shape}"
-        
+
         # then concat tensors that belong to the same sample (in order) then get the length of each sample, and then stack them in batch dimension, pad them with pad_token
         cated_y, new_y_lens = self.cat_y(inserted_y, mask_position, y_lens) # KTB
         assert cated_y.shape == torch.Size((self.args.n_codebooks, cated_y.shape[1], len(inserted_y)))
-        
+
 
         # embed remember to separately embed the mask tokens
         embedded_y = self.embed_y(cated_y, mask_position, mask_value) #BTD
         assert embedded_y.shape[1:] == torch.Size((max(new_y_lens), self.args.d_model)), embedded_y.shape
-        
+
         # positional embedding
         y_input = self.audio_positional_embedding(embedded_y)
 
@@ -354,9 +354,9 @@ class VoiceCraft(nn.Module):
             non_mask_intervals = [[non_mask_positions[i]+1, non_mask_positions[i+1]] for i in range(len(non_mask_positions)-1)]
             cur_logits_use = [logits[i, :, l:r] for l,r in non_mask_intervals]
             logits_use.append(cur_logits_use)
-        
+
         return logits_use
-    
+
     def revert_pattern(self, patterns, logits_use):
         logits_final = []
         logit_masks = []
@@ -376,9 +376,10 @@ class VoiceCraft(nn.Module):
 
         return logits_final, logit_masks
 
+    @torch.autocast(device_type="cuda", dtype=torch.float16)
     def dec_forward(
-            self, 
-            x_input, 
+            self,
+            x_input,
             x_lens,
             x_attention_mask,
             x_padding_mask,
@@ -418,7 +419,8 @@ class VoiceCraft(nn.Module):
             xy_input = torch.cat([x_input, y_input], dim=1)
 
             if past == None: # do not use kvcache
-                out, _ =  self.decoder((xy_input, None), mask=xy_attn_mask)
+                out, _ = self.decoder((xy_input, None), mask=xy_attn_mask)
+                # out = out.half() # TODO: make this an option => only on if dtype = float16
                 return out[:, x_lens.max():], None
             else: # use kvcache
                 if past.ndim > 3: # uses kvcache, only need to pass the last tokens, this doesn't work with multi-span speech editing yet
@@ -438,6 +440,7 @@ class VoiceCraft(nn.Module):
                 else: # used kvcache
                     return out, present
 
+    @torch.autocast(device_type="cuda", dtype=torch.float16)
     def forward(self, batch):
         """
         Args:
@@ -467,7 +470,7 @@ class VoiceCraft(nn.Module):
         x_input = self.text_positional_embedding(x_input)
         y_input, new_y_lens, targets, y_padding_mask, y_attention_mask, mask_position, patterns = self.prepare_input_target(y, y_lens)
         y_out = self.dec_forward(
-                    x_input, 
+                    x_input,
                     x_lens,
                     x_attention_mask,
                     x_padding_mask,
@@ -478,13 +481,13 @@ class VoiceCraft(nn.Module):
                 )
         y_out = y_out[0] # no kv-caching during training
         assert y_out.shape == y_input.shape, f"y_out.shape: {y_out.shape}, y_input.shape: {y_input.shape}" # [B S D]
-        
+
         logits = torch.stack([self.predict_layer[i](y_out) for i in range(self.args.n_codebooks)], dim=1) # [B K S card]
         # take out the mask token (using mask_position and new_y_lens) and revert (using function provided by self.pattern)
         assert logits.shape[1] == self.args.n_codebooks and logits.shape[3] == self.n_audio_tokens[0], logits.shape
 
         logits_use = self.remove_mask(logits, mask_position, new_y_lens)
-        
+
         # revert the pattern shift for each logits section in each sample
         logits_final, logit_masks = self.revert_pattern(patterns, logits_use)
         assert logits_final[0][0].shape[0] == self.args.n_codebooks and logits_final[0][0].shape[2] == self.n_audio_tokens[0], f"it is: {logits_final[0][0].shape}, but should be [K, T, card]"
@@ -507,7 +510,7 @@ class VoiceCraft(nn.Module):
             loss.append(F.cross_entropy(logit, target, reduction='mean'))
             top10acc.append(self.accuracy_metrics[k](logit.detach(), target))
             ntokens.append(len(logit))
-        
+
         all_ntokens = sum(ntokens)
         if self.args.codebook_weight != None:
             codebook_weight = eval(self.args.codebook_weight)
@@ -524,7 +527,7 @@ class VoiceCraft(nn.Module):
             "top10acc_by_codebook": top10acc_by_codebook,
             "effective_ntoken": ntokens,
         }
-    
+
     def inference(
         self,
         x: torch.Tensor,
@@ -593,7 +596,7 @@ class VoiceCraft(nn.Module):
         non_mask_intervals = [[
             (ns, ne) for ns, ne in zip(ends, starts)
         ]]
-        
+
         # rearrange y
         # will add have EOG in each section (SOG will be generated by the pattern class)
         # but mask can be inserted later after we have shifted the input
@@ -625,7 +628,7 @@ class VoiceCraft(nn.Module):
         inserted_y, mask_position, mask_value = self.insert_mask(shifted_y)
         assert inserted_y[0][0].shape[0] == self.args.n_codebooks, inserted_y[0][0].shape[0]
         assert inserted_y[0][1].shape == torch.Size((self.args.n_codebooks, 1)), f"this should be a mask, so should have shape {(self.args.n_codebooks, 1)}, but it's {inserted_y[0][1].shape}"
-        
+
         # then concat tensors that belong to the same sample (in order) then get the length of each sample, and then stack them in batch dimension, pad them with pad_token
         cated_y, new_y_lens = self.cat_y(inserted_y, mask_position, y_lens) # KTB
         assert cated_y.shape == torch.Size((self.args.n_codebooks, cated_y.shape[1], len(inserted_y)))
@@ -678,10 +681,10 @@ class VoiceCraft(nn.Module):
         ##################### silence repetition handling #####################
         # prepare the cache placeholder
         # n_layers, 2, bsz, num_heads, src_len, head_dim
-        past = torch.ones([self.args.num_decoder_layers, 2, x.shape[0]], device=x.device, dtype=torch.float32) if kvcache else None
+        past = torch.ones([self.args.num_decoder_layers, 2, x.shape[0]], device=x.device, dtype=torch.float16) if kvcache else None
         # handle multi-span kv-cache
         new_masked_span = False
-        
+
         def sample_helper(n_eog, logits, codebook_eog, top_k, top_p, temperature, prev_token, consec_silence_count, stop_repetition, silence_tokens, cur_num_gen):
             if n_eog == 0:
                 logits_adjust = logits
@@ -755,7 +758,7 @@ class VoiceCraft(nn.Module):
 
         while True:
             y_out, present = self.dec_forward(
-                                    x_input, 
+                                    x_input,
                                     x_lens,
                                     x_attention_mask,
                                     x_padding_mask,
@@ -835,7 +838,7 @@ class VoiceCraft(nn.Module):
             y_attention_mask = torch.triu(torch.ones(y_input.shape[1], y_input.shape[1]), diagonal=1).bool().to(y.device)
             new_y_lens = torch.LongTensor([y_input.shape[1]]).to(y.device)
             y_padding_mask = torch.full((1,new_y_lens[0]), False).to(y.device)
-        
+
         assert len(generated) == num_mask, f"len(generated): {len(generated)}, num_mask: {num_mask}"
 
         # # combine non_masked_span with generated spans
@@ -866,7 +869,7 @@ class VoiceCraft(nn.Module):
 
         expected_y_len = y_len - sum([item[1] - item[0] for item in mask_intervals[0]]) + sum([item - self.args.n_codebooks for item in num_gen])
         assert res.shape == torch.Size((1, self.args.n_codebooks, expected_y_len)), f"res.shape: {res.shape}, expected_y_len: {expected_y_len}. y_len - sum([item[1] - item[0] for item in mask_interval]) + sum([item - self.args.n_codebooks for item in num_gen]): {y_len}-{sum([item[1] - item[0] for item in mask_interval])} + {sum([item - self.args.n_codebooks for item in num_gen])}"
-        
+
         if self.args.special_first:
             res = res - int(self.args.n_special)
 
@@ -947,7 +950,7 @@ class VoiceCraft(nn.Module):
         assert embedded_y.shape[-1] == self.args.d_model, embedded_y.shape
         embedded_y = embedded_y.sum(dim=0) # [K,S,B,D]->[S,B,D]
         embedded_y = embedded_y.transpose(1,0) # [S,B,D]->[B,S,D]
-        
+
         # positional embedding
         y_input = self.audio_positional_embedding(embedded_y)
 
@@ -978,7 +981,7 @@ class VoiceCraft(nn.Module):
 
         # prepare the cache placeholder
         # n_layers, 2, bsz, num_heads, src_len, head_dim
-        past = torch.ones([self.args.num_decoder_layers, 2, x.shape[0]], device=x.device, dtype=torch.float32) if kvcache else None
+        past = torch.ones([self.args.num_decoder_layers, 2, x.shape[0]], device=x.device, dtype=torch.float16) if kvcache else None
         # logging.info(f"number of decoder layers: {self.args.num_decoder_layers}")
         # logging.info(f"number of decoder layers: {self.args.num_decoder_layers}")
         # logging.info(f"number of decoder layers: {self.args.num_decoder_layers}")
@@ -1034,7 +1037,7 @@ class VoiceCraft(nn.Module):
                 return samples, codebook_eog, prev_token, consec_silence_count
         while True:
             y_out, present = self.dec_forward(
-                            x_input, 
+                            x_input,
                             x_lens,
                             x_attention_mask,
                             x_padding_mask,
@@ -1058,9 +1061,9 @@ class VoiceCraft(nn.Module):
             if self.args.eos > 0: # if we are using end-of-sentence token (which is used by default), eog shouldn't be used here, as there is no masked spans
                 for jj in range(self.args.n_codebooks):
                     logits[jj][self.args.eog] = -10000.
-            
+
             samples, codebook_eog, prev_token, consec_silence_count = sample_helper(n_eog, logits, codebook_eog, top_k, top_p, temperature, prev_token, consec_silence_count, stop_repetition, silence_tokens, cur_num_gen)
-            
+
             cur_num_gen += 1
             cur_generated.append(samples.squeeze(-1)) # [K,1] -> [K]
 
@@ -1078,14 +1081,14 @@ class VoiceCraft(nn.Module):
                 break
             else:
                 assert samples_emb.shape == torch.Size((1,1,self.args.d_model)), f"samples_emb.shape: {samples_emb.shape}"
-            
+
             embedded_y = torch.cat([embedded_y, samples_emb], dim=1)
             y_input = self.audio_positional_embedding(embedded_y) # [B T D]
             # make attention mask and padding mask
             y_attention_mask = torch.triu(torch.ones(y_input.shape[1], y_input.shape[1]), diagonal=1).bool().to(y.device)
             new_y_lens = torch.LongTensor([y_input.shape[1]]).to(y.device)
             y_padding_mask = torch.full((1,new_y_lens[0]), False).to(y.device)
-        
+
         assert len(generated) == 1, f"len(generated): {len(generated)}"
 
         # revert the pattern
@@ -1105,7 +1108,7 @@ class VoiceCraft(nn.Module):
 
             flatten_gen.append(unshifted_span)
         assert len(flatten_gen) == 1, len(flatten_gen)
-        
+
         # combine 
         res = [y[0], flatten_gen[0]]
         res = torch.cat(res, dim=1).unsqueeze(0) # [K, new_t] -> [1, K, new_T]
@@ -1197,7 +1200,7 @@ class VoiceCraft(nn.Module):
         assert embedded_y.shape[-1] == self.args.d_model, embedded_y.shape
         embedded_y = embedded_y.sum(dim=0) # [K,S,B,D]->[S,B,D]
         embedded_y = embedded_y.transpose(1,0) # [S,B,D]->[B,S,D]
-        
+
         # positional embedding
         y_input = self.audio_positional_embedding(embedded_y)
 
@@ -1228,7 +1231,7 @@ class VoiceCraft(nn.Module):
 
         # prepare the cache placeholder
         # n_layers, 2, bsz, num_heads, src_len, head_dim
-        past = torch.ones([self.args.num_decoder_layers, 2, x.shape[0]], device=x.device, dtype=torch.float32) if kvcache else None
+        past = torch.ones([self.args.num_decoder_layers, 2, x.shape[0]], device=x.device, dtype=torch.float16) if kvcache else None
         # logging.info(f"number of decoder layers: {self.args.num_decoder_layers}")
         # logging.info(f"number of decoder layers: {self.args.num_decoder_layers}")
         # logging.info(f"number of decoder layers: {self.args.num_decoder_layers}")
@@ -1311,7 +1314,7 @@ class VoiceCraft(nn.Module):
             else:
                 assert x_input.shape[0] == batch_size and x_padding_mask.shape[0] == batch_size and y_input.shape[0] == batch_size and new_y_lens.shape[0] == batch_size, f"x_input.shape: {x_input.shape}, x_padding_mask.shape: {x_padding_mask.shape}, y_input.shape: {y_input.shape}, new_y_lens.shape: {new_y_lens.shape}"
             y_out, present = self.dec_forward(
-                            x_input, 
+                            x_input,
                             x_lens,
                             x_attention_mask,
                             x_padding_mask,
@@ -1337,7 +1340,7 @@ class VoiceCraft(nn.Module):
                 for jj in range(self.args.n_codebooks):
                     logits[:,jj,self.args.eog] = -10000.
             samples, codebook_eog, prev_tokens, consec_silence_counts, keep = sample_helper(n_eog, logits, codebook_eog, top_k, top_p, temperature, prev_tokens, consec_silence_counts, stop_repetition, silence_tokens, cur_num_gen, keep)
-            
+
             cur_num_gen += 1
             if sum(codebook_eog) == 0: # no eog yet, keep batch_size of samples
                 assert keep == None
@@ -1347,7 +1350,7 @@ class VoiceCraft(nn.Module):
                 assert keep != None
                 cur_generated = cur_generated[keep]
                 cur_generated.append(samples[keep].squeeze(-1))
-            else: # we are generating the rest eogs for the 'keep' sample 
+            else: # we are generating the rest eogs for the 'keep' sample
                 cur_generated.append(samples[keep].squeeze(-1))
 
             # samples.shape is [K,1]
@@ -1364,14 +1367,14 @@ class VoiceCraft(nn.Module):
                 break
             else:
                 assert samples_emb.shape == torch.Size((batch_size,1,self.args.d_model)), f"samples_emb.shape: {samples_emb.shape}"
-            
+
             embedded_y = torch.cat([embedded_y, samples_emb], dim=1)
             y_input = self.audio_positional_embedding(embedded_y) # [B T D]
             # make attention mask and padding mask
             y_attention_mask = torch.triu(torch.ones(y_input.shape[1], y_input.shape[1]), diagonal=1).bool().to(y.device)
             new_y_lens = torch.LongTensor([y_input.shape[1]]).to(y.device).repeat(batch_size)
             y_padding_mask = torch.full((batch_size,new_y_lens[0]), False).to(y.device)
-        
+
         assert len(generated) == 1, f"len(generated): {len(generated)}"
 
         # revert the pattern
@@ -1391,7 +1394,7 @@ class VoiceCraft(nn.Module):
 
             flatten_gen.append(unshifted_span)
         assert len(flatten_gen) == 1, len(flatten_gen)
-        
+
         # combine 
         res = [y[0], flatten_gen[0]]
         res = torch.cat(res, dim=1).unsqueeze(0) # [K, new_t] -> [1, K, new_T]
