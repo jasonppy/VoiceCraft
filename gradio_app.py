@@ -92,7 +92,7 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
             transcribe_model = WhisperxModel(whisper_model_name, align_model)
 
     voicecraft_name = f"{voicecraft_model_name}.pth"
-    model = voicecraft.VoiceCraftHF.from_pretrained(f"pyp1/VoiceCraft_{voicecraft_name.replace('.pth', '')}")
+    model = voicecraft.VoiceCraft.from_pretrained(f"pyp1/VoiceCraft_{voicecraft_name.replace('.pth', '')}")
     phn2num = model.args.phn2num
     config = model.args
     model.to(device)
