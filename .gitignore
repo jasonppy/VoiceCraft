@@ -27,3 +27,5 @@ src/audiocraft
 
 !/demo/
 !/demo/*
+
+.cog/tmp/*
