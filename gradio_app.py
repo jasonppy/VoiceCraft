@@ -104,19 +104,6 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
     if not os.path.exists(encodec_fn):
         os.system(f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th")
 
-# Define the source and destination paths
-source_path = "/content/encodec_4cb2048_giga.th"
-destination_path = "/content/VoiceCraft/pretrained_models/encodec_4cb2048_giga.th"
-
-# Move or copy the file to the correct location
-try:
-    shutil.move(source_path, destination_path)  # Use shutil.move for moving
-    print("File moved successfully.")
-except FileNotFoundError:
-    print("File not found at the source path.")
-except shutil.Error as e:
-    print("Error:", e)
-
     voicecraft_model = {
         "config": config,
         "phn2num": phn2num,
@@ -124,7 +111,6 @@ except shutil.Error as e:
         "text_tokenizer": TextTokenizer(backend="espeak"),
         "audio_tokenizer": AudioTokenizer(signature=encodec_fn)
     }
-    def create_accordion():
         return gr.Accordion()
 
 
@@ -155,6 +141,19 @@ def transcribe(seed, audio_path):
         gr.Dropdown(value=state["word_bounds"][-1], choices=state["word_bounds"], interactive=True), # edit_to_word
         state
     ]
+
+    # Define the source and destination paths
+    source_path = "/content/encodec_4cb2048_giga.th"
+    destination_path = "/content/VoiceCraft/pretrained_models/encodec_4cb2048_giga.th"
+
+    # Move or copy the file to the correct location
+    try:
+        shutil.move(source_path, destination_path)  # Use shutil.move for moving
+        print("File moved successfully.")
+    except FileNotFoundError:
+        print("File not found at the source path.")
+    except shutil.Error as e:
+        print("Error:", e)
 
 
 def align_segments(transcript, audio_path):
