@@ -11,13 +11,29 @@ import io
 import numpy as np
 import random
 import uuid
-
+import shutil
+import nltk
 
 DEMO_PATH = os.getenv("DEMO_PATH", "./demo")
 TMP_PATH = os.getenv("TMP_PATH", "./demo/temp")
 MODELS_PATH = os.getenv("MODELS_PATH", "./pretrained_models")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 whisper_model, align_model, voicecraft_model = None, None, None
+
+# Define the source and destination paths
+source_path = "/content/encodec_4cb2048_giga.th"
+destination_path = "/content/VoiceCraft/pretrained_models/encodec_4cb2048_giga.th"
+
+# Move or copy the file to the correct location
+try:
+    shutil.move(source_path, destination_path)  # Use shutil.move for moving
+    print("File moved successfully.")
+except FileNotFoundError:
+    print("File not found at the source path.")
+except shutil.Error as e:
+    print("Error:", e)
+
+nltk.download('punkt')
 
 
 def get_random_string():
