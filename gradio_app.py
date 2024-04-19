@@ -99,7 +99,7 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
 
     encodec_fn = f"{MODELS_PATH}/encodec_4cb2048_giga.th"
     if not os.path.exists(encodec_fn):
-        os.system(f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th")
+        os.system(f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th -O " + encodec_fn)
 
     voicecraft_model = {
         "config": config,
