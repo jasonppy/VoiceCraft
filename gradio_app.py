@@ -124,7 +124,8 @@ except shutil.Error as e:
         "text_tokenizer": TextTokenizer(backend="espeak"),
         "audio_tokenizer": AudioTokenizer(signature=encodec_fn)
     }
-    return gr.Accordion()
+    def create_accordion():
+        return gr.Accordion()
 
 
 def get_transcribe_state(segments):
