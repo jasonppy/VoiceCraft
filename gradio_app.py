@@ -106,7 +106,7 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
 
     # Define the source and destination paths
     source_path = "/content/encodec_4cb2048_giga.th"
-    destination_path = "/content/VoiceCraft/pretrained_models/encodec_4cb2048_giga.th"
+    destination_path = "/content/VoiceCraft-gradio-colab/pretrained_models/encodec_4cb2048_giga.th"
 
     # Move or copy the file to the correct location
     try:
