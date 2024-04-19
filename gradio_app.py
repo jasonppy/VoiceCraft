@@ -111,7 +111,7 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
         "text_tokenizer": TextTokenizer(backend="espeak"),
         "audio_tokenizer": AudioTokenizer(signature=encodec_fn)
     }
-        return gr.Accordion()
+    return gr.Accordion()
 
 
 def get_transcribe_state(segments):
