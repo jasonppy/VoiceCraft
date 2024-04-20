@@ -602,6 +602,7 @@ if __name__ == "__main__":
     parser.add_argument("--models-path", default="./pretrained_models", help="Path to voicecraft models directory")
     parser.add_argument("--port", default=7860, type=int, help="App port")
     parser.add_argument("--share", action="store_true", help="Launch with public url")
+    parser.add_argument("--server_name", default="127.0.0.1", type=str, help="Server name for launching the app. 127.0.0.1 for localhost; 0.0.0.0 to allow access from other machines in the local network. Might also give access to external users depends on the firewall settings.")
 
     os.environ["USER"] = os.getenv("USER", "user")
     args = parser.parse_args()
@@ -610,4 +611,4 @@ if __name__ == "__main__":
     MODELS_PATH = args.models_path
 
     app = get_app()
-    app.queue().launch(share=args.share, server_name="0.0.0.0", server_port=args.port)
+    app.queue().launch(share=args.share, server_name=args.server_name, server_port=args.port)
