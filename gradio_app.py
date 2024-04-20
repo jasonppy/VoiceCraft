@@ -113,9 +113,11 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
 
 def get_transcribe_state(segments):
     words_info = [word_info for segment in segments for word_info in segment["words"]]
+    transcript = " ".join([segment["text"] for segment in segments])
+    transcript = transcript[1:] if transcript[0] == " " else transcript
     return {
         "segments": segments,
-        "transcript": " ".join([segment["text"] for segment in segments]),
+        "transcript": transcript,
         "words_info": words_info,
         "transcript_with_start_time": " ".join([f"{word['start']} {word['word']}" for word in words_info]),
         "transcript_with_end_time": " ".join([f"{word['word']} {word['end']}" for word in words_info]),
@@ -362,7 +364,7 @@ If disabled, you should write the target transcript yourself:</br>
  - In Edit mode write full prompt</br>
 """
 
-demo_original_transcript = " But when I had approached so near to them, the common object, which the sense deceives, lost not by distance any of its marks."
+demo_original_transcript = "But when I had approached so near to them, the common object, which the sense deceives, lost not by distance any of its marks."
 
 demo_text = {
     "TTS": {
