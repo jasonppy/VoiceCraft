@@ -11,7 +11,8 @@ import io
 import numpy as np
 import random
 import uuid
-
+import nltk
+nltk.download('punkt')
 
 DEMO_PATH = os.getenv("DEMO_PATH", "./demo")
 TMP_PATH = os.getenv("TMP_PATH", "./demo/temp")
