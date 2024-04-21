@@ -102,20 +102,7 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
 
     encodec_fn = f"{MODELS_PATH}/encodec_4cb2048_giga.th"
     if not os.path.exists(encodec_fn):
-        os.system(f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th")
-
-    # Define the source and destination paths
-    source_path = "/content/encodec_4cb2048_giga.th"
-    destination_path = "/content/VoiceCraft-gradio-colab/pretrained_models/encodec_4cb2048_giga.th"
-
-    # Move or copy the file to the correct location
-    try:
-        shutil.move(source_path, destination_path)  # Use shutil.move for moving
-        print("File moved successfully.")
-    except FileNotFoundError:
-        print("File not found at the source path.")
-    except shutil.Error as e:
-        print("Error:", e)
+        os.system(f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th -O " + encodec_fn)
 
     voicecraft_model = {
         "config": config,
@@ -625,4 +612,4 @@ if __name__ == "__main__":
     MODELS_PATH = args.models_path
 
     app = get_app()
-    app.queue().launch(share=args.share, server_port=args.port)
+    app.queue().launch(share=args.share, server_name="0.0.0.0", server_port=args.port)
