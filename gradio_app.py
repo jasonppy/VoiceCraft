@@ -86,7 +86,6 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
     elif voicecraft_model_name == "830M_TTSEnhanced":
         voicecraft_model_name = "830M_TTSEnhanced"
 
-
     if alignment_model_name is not None:
         align_model = WhisperxAlignModel()
 
@@ -139,7 +138,7 @@ def transcribe(seed, audio_path):
 
     segments = transcribe_model.transcribe(audio_path)
     state = get_transcribe_state(segments)
-    print(state)
+
     return [
         state["transcript"], state["transcript_with_start_time"], state["transcript_with_end_time"],
         gr.Dropdown(value=state["word_bounds"][-1], choices=state["word_bounds"], interactive=True), # prompt_to_word
@@ -435,7 +434,7 @@ def get_app():
                 input_audio = gr.Audio(value=f"{DEMO_PATH}/5895_34622_000026_000002.wav", label="Input Audio", type="filepath", interactive=True)
                 with gr.Group():
                     original_transcript = gr.Textbox(label="Original transcript", lines=5, value=demo_original_transcript,
-                                                    info="Use whisper model to get the transcript. Fix and align it if necessary.")
+                                                    info="Use whisperx model to get the transcript. Fix and align it if necessary.")
                     with gr.Accordion("Word start time", open=False):
                         transcript_with_start_time = gr.Textbox(label="Start time", lines=5, interactive=False, info="Start time before each word")
                     with gr.Accordion("Word end time", open=False):
