@@ -28,3 +28,5 @@ src/audiocraft
 
 !/demo/
 !/demo/*
+
+demo/temp/*.txt
