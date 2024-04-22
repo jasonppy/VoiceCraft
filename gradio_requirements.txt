@@ -4,3 +4,4 @@ openai-whisper>=20231117
 aeneas>=1.7.3.0
 whisperx>=3.1.1
 huggingface_hub==0.22.2
+num2words==0.5.13

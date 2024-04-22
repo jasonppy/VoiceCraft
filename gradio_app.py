@@ -1,4 +1,6 @@
 import os
+import re
+from num2words import num2words
 import gradio as gr
 import torch
 import torchaudio
@@ -201,6 +203,15 @@ def get_output_audio(audio_tensors, codec_audio_sr):
     buffer.seek(0)
     return buffer.read()
 
+def replace_numbers_with_words(sentence):
+    sentence = re.sub(r'(\d+)', r' \1 ', sentence) # add spaces around numbers
+    def replace_with_words(match):
+        num = match.group(0)
+        try:
+            return num2words(num) # Convert numbers to words
+        except:
+            return num # In case num2words fails (unlikely with digits but just to be safe)
+    return re.sub(r'\b\d+\b', replace_with_words, sentence) # Regular expression that matches numbers
 
 def run(seed, left_margin, right_margin, codec_audio_sr, codec_sr, top_k, top_p, temperature,
         stop_repetition, sample_batch_size, kvcache, silence_tokens,
@@ -213,6 +224,8 @@ def run(seed, left_margin, right_margin, codec_audio_sr, codec_sr, top_k, top_p,
         raise gr.Error("Can't use smart transcript: whisper transcript not found")
 
     seed_everything(seed)
+    transcript = replace_numbers_with_words(transcript).replace("  ", " ").replace("  ", " ") # replace numbers with words, so that the phonemizer can do a better job
+
     if mode == "Long TTS":
         if split_text == "Newline":
             sentences = transcript.split('\n')
