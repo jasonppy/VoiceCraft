@@ -30,3 +30,4 @@ src/audiocraft
 !/demo/*
 /demo/temp/*.txt
 !/demo/temp/84_121550_000074_000000.txt
+.cog/tmp/*

@@ -1,0 +1,24 @@
+# Configuration for Cog ⚙️
+# Reference: https://github.com/replicate/cog/blob/main/docs/yaml.md
+
+build:
+  gpu: true
+  system_packages:
+    - libgl1-mesa-glx
+    - libglib2.0-0
+    - ffmpeg
+    - espeak-ng
+  python_version: "3.11"
+  python_packages:
+    - torch==2.1.0
+    - torchaudio==2.1.0 
+    - xformers
+    - phonemizer==3.2.1
+    - whisperx==3.1.1
+    - openai-whisper>=20231117
+  run:
+    - git clone https://github.com/facebookresearch/audiocraft && pip install -e ./audiocraft
+    - pip install "pydantic<2.0.0"
+    - curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.6.0/pget_linux_x86_64" && chmod +x /usr/local/bin/pget
+    - mkdir -p /root/.cache/torch/hub/checkpoints/ && wget --output-document "/root/.cache/torch/hub/checkpoints/wav2vec2_fairseq_base_ls960_asr_ls960.pth" "https://download.pytorch.org/torchaudio/models/wav2vec2_fairseq_base_ls960_asr_ls960.pth"
+predict: "predict.py:Predictor"
