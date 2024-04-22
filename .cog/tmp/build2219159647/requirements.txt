@@ -1,8 +1,0 @@
---extra-index-url https://download.pytorch.org/whl/cu118
-torch==2.0.1
-torchaudio==2.0.2
-xformers==0.0.22
-tensorboard==2.16.2
-phonemizer==3.2.1
-datasets==2.16.0
-torchmetrics==0.11.1

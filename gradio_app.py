@@ -85,7 +85,7 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
     elif voicecraft_model_name == "830M":
         voicecraft_model_name = "giga830M"
     elif voicecraft_model_name == "330M_TTSEnhanced":
-        voicecraft_model_name = "gigaHalfLibri330M_TTSEnhanced_max16s"
+        voicecraft_model_name = "330M_TTSEnhanced"
     elif voicecraft_model_name == "830M_TTSEnhanced":
         voicecraft_model_name = "830M_TTSEnhanced"
 
