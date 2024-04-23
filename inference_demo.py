@@ -26,44 +26,45 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description="VoiceCraft TTS Inference: see the script for more information on the options")
 
-    parser.add_argument("--model_name", type=str, default="giga330M.pth", choices=[
+    parser.add_argument("-m", "--model_name", type=str, default="giga330M.pth", choices=[
                         "giga330M.pth", "gigaHalfLibri330M_TTSEnhanced_max16s.pth", "giga830M.pth"],
                         help="VoiceCraft model to use")
-    parser.add_argument("--codec_audio_sr", type=int,
-                        default=16000, help="Audio sampling rate for the codec")
-    parser.add_argument("--codec_sr", type=int, default=50,
-                        help="Sampling rate for the codec")
-    parser.add_argument("--top_k", type=float, default=0,
-                        help="Top-k value")
-    parser.add_argument("--top_p", type=float, default=0.9,
-                        help="Top-p value")
-    parser.add_argument("--temperature", type=float,
-                        default=1.0, help="Temperature for sampling")
-    parser.add_argument("--silence_tokens", type=int, nargs="*",
+    parser.add_argument("-st", "--silence_tokens", type=int, nargs="*",
                         default=[1388, 1898, 131], help="Silence token IDs")
-    parser.add_argument("--kvcache", type=int, default=1, choices=[0, 1],
-                        help="Key-value cache flag (0 or 1)")
-    parser.add_argument("--stop_repetition", type=int,
-                        default=3, help="Stop repetition for generation")
+    parser.add_argument("-casr", "--codec_audio_sr", type=int,
+                        default=16000, help="Codec audio sample rate.")
+    parser.add_argument("-csr", "--codec_sr", type=int, default=50,
+                        help="Codec sample rate.")
+
+    parser.add_argument("-k", "--top_k", type=float,
+                        default=0, help="Top k value.")
+    parser.add_argument("-p", "--top_p", type=float,
+                        default=0.8, help="Top p value.")
+    parser.add_argument("-t", "--temperature", type=float,
+                        default=1, help="Temperature value.")
+    parser.add_argument("-kv", "--kvcache", type=float, choices=[0, 1],
+                        default=0, help="Kvcache value.")
+    parser.add_argument("-sr", "--stop_repetition", type=int,
+                        default=-1, help="Stop repetition for generation")
     parser.add_argument("--sample_batch_size", type=int,
                         default=3, help="Batch size for sampling")
-    parser.add_argument("--seed", type=int, default=1,
-                        help="Random seed for reproducibility")
-    parser.add_argument("--beam_size", type=int, default=10,
+    parser.add_argument("-s", "--seed", type=int,
+                        default=1, help="Seed value.")
+    parser.add_argument("-bs", "--beam_size", type=int, default=10,
                         help="beam size for MFA alignment")
-    parser.add_argument("--retry_beam_size", type=int, default=40,
+    parser.add_argument("-rbs", "--retry_beam_size", type=int, default=40,
                         help="retry beam size for MFA alignment")
     parser.add_argument("--output_dir", type=str, default="./generated_tts",
                         help="directory to save generated audio")
-    parser.add_argument("--original_audio", type=str,
-                        default="./demo/84_121550_000074_000000.wav", help="location of target audio file")
-    parser.add_argument("--original_transcript", type=str,
+    parser.add_argument("-oa", "--original_audio", type=str,
+                        default="./demo/84_121550_000074_000000.wav", help="location of audio file")
+    parser.add_argument("-ot", "--original_transcript", type=str,
                         default="But when I had approached so near to them The common object, which the sense deceives, Lost not by distance any of its marks,",
-                        help="original audio transcript")
-    parser.add_argument("--target_transcript", type=str,
-                        default="Gwynplaine had, besides, for his work and for his feats of strength, I cannot believe that the same model can also do text to speech synthesis too!",
-                        help="target audio transcript")
-    parser.add_argument("--cut_off_sec", type=float, default=3.6,
+                        help="original transcript")
+    parser.add_argument("-tt", "--target_transcript", type=str,
+                        default="But when I saw the mirage of the lake in the distance, which the sense deceives, Lost not by distance any of its marks,",
+                        help="target transcript")
+    parser.add_argument("-co", "--cut_off_sec", type=float, default=3.6,
                         help="cut off point in seconds for input prompt")
     args = parser.parse_args()
     return args
@@ -144,6 +145,7 @@ audio_dur = info.num_frames / info.sample_rate
 
 assert cut_off_sec < audio_dur, f"cut_off_sec {cut_off_sec} is larger than the audio duration {audio_dur}"
 prompt_end_frame = int(cut_off_sec * info.sample_rate)
+
 
 def seed_everything(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)

@@ -27,46 +27,47 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description="VoiceCraft Speech Editing: see the script for more information on the options")
 
-    parser.add_argument("--model_name", type=str, default="giga330M.pth", choices=[
+    parser.add_argument("-m", "--model_name", type=str, default="giga330M.pth", choices=[
                         "giga330M.pth", "gigaHalfLibri330M_TTSEnhanced_max16s.pth", "giga830M.pth"],
                         help="VoiceCraft model to use")
-    parser.add_argument("--silence_tokens", type=int, nargs="*",
+    parser.add_argument("-st", "--silence_tokens", type=int, nargs="*",
                         default=[1388, 1898, 131], help="Silence token IDs")
-    parser.add_argument("--left_margin", type=float,
+    parser.add_argument("-lm", "--left_margin", type=float,
                         default=0.08, help="Left margin value.")
-    parser.add_argument("--right_margin", type=float,
+    parser.add_argument("-rm", "--right_margin", type=float,
                         default=0.08, help="Right margin value.")
-    parser.add_argument("--codec_audio_sr", type=int,
+    parser.add_argument("-casr", "--codec_audio_sr", type=int,
                         default=16000, help="Codec audio sample rate.")
-    parser.add_argument("--codec_sr", type=int, default=50,
+    parser.add_argument("-csr", "--codec_sr", type=int, default=50,
                         help="Codec sample rate.")
-    parser.add_argument("--top_k", type=float, default=0, help="Top k value.")
-    parser.add_argument("--top_p", type=float,
+    parser.add_argument("-k", "--top_k", type=float, 
+                        default=0, help="Top k value.")
+    parser.add_argument("-p", "--top_p", type=float,
                         default=0.8, help="Top p value.")
-    parser.add_argument("--temperature", type=float,
+    parser.add_argument("-t", "--temperature", type=float,
                         default=1, help="Temperature value.")
-    parser.add_argument("--kvcache", type=float,
+    parser.add_argument("-kv", "--kvcache", type=float, choices=[0, 1],
                         default=0, help="Kvcache value.")
-    parser.add_argument("--seed", type=int, default=1, help="Seed value.")
-    parser.add_argument("--beam_size", type=int, default=10,
-                        help="beam size for MFA alignment")
-    parser.add_argument("--retry_beam_size", type=int, default=40,
-                        help="retry beam size for MFA alignment")
-    parser.add_argument("--original_audio", type=str,
-                        default="./demo/84_121550_000074_000000.wav", help="location of audio file")
-    parser.add_argument("--stop_repetition", type=int,
+    parser.add_argument("-sr", "--stop_repetition", type=int,
                         default=-1, help="Stop repetition for generation")
-    parser.add_argument("--original_transcript", type=str,
+    parser.add_argument("-s", "--seed", type=int, default=1, help="Seed value.")
+    parser.add_argument("-bs", "--beam_size", type=int, default=10,
+                        help="beam size for MFA alignment")
+    parser.add_argument("-rbs", "--retry_beam_size", type=int, default=40,
+                        help="retry beam size for MFA alignment")
+    parser.add_argument("-oa", "--original_audio", type=str,
+                        default="./demo/84_121550_000074_000000.wav", help="location of audio file")
+    parser.add_argument("-ot", "--original_transcript", type=str,
                         default="But when I had approached so near to them The common object, which the sense deceives, Lost not by distance any of its marks,",
                         help="original transcript")
-    parser.add_argument("--target_transcript", type=str,
+    parser.add_argument("-tt", "--target_transcript", type=str,
                         default="But when I saw the mirage of the lake in the distance, which the sense deceives, Lost not by distance any of its marks,",
                         help="target transcript")
-    parser.add_argument("--edit_type", type=str,
+    parser.add_argument("-et", "--edit_type", type=str,
                         default="substitution",
                         choices=["insertion", "substitution", "deletion"],
                         help="type of specified edit")
-    parser.add_argument("--output_dir", type=str,
+    parser.add_argument("-o", "--output_dir", type=str,
                         default="./demo/generated_se", help="output directory")
     args = parser.parse_args()
     return args
