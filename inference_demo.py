@@ -50,6 +50,11 @@ def parse_arguments():
                         default=3, help="Batch size for sampling")
     parser.add_argument("--seed", type=int, default=1,
                         help="Random seed for reproducibility")
+    parser.add_argument("--beam_size", type=int, default=10,
+                        help="beam size for MFA alignment")
+    parser.add_argument("--retry_beam_size", type=int, default=40,
+                        help="retry beam size for MFA alignment")
+
     parser.add_argument("--output_dir", type=str, default="./generated_tts",
                         help="directory to save generated audio")
     parser.add_argument("--original_audio", type=str,
@@ -67,7 +72,6 @@ def parse_arguments():
 
 
 args = parse_arguments()
-
 voicecraft_name = args.model_name
 # hyperparameters for inference
 codec_audio_sr = args.codec_audio_sr
@@ -122,19 +126,15 @@ with open(f"{temp_folder}/{filename}.txt", "w") as f:
     f.write(orig_transcript)
 # run MFA to get the alignment
 align_temp = f"{temp_folder}/mfa_alignments"
-
+beam_size = args.beam_size
+retry_beam_size = args.retry_beam_size
 os.system("source ~/.bashrc && \
     conda activate voicecraft && \
     mfa align -v --clean -j 1 --output_format csv {temp_folder} \
-        english_us_arpa english_us_arpa {align_temp}"
+        english_us_arpa english_us_arpa {align_temp} --beam {beam_size} --retry_beam {retry_beam_size}"
           )
-
-# # if the above fails, it could be because the audio is too hard for the alignment model,
+# if the above fails, it could be because the audio is too hard for the alignment model,
 # increasing the beam size usually solves the issue
-# os.system("source ~/.bashrc && \
-#     conda activate voicecraft && \
-#     mfa align -v --clean -j 1 --output_format csv {temp_folder} \
-#         english_us_arpa english_us_arpa {align_temp} --beam 1000 --retry_beam 2000")
 
 # take a look at demo/temp/mfa_alignment, decide which part of the audio to use as prompt
 cut_off_sec = args.cut_off_sec  # NOTE: according to forced-alignment file demo/temp/mfa_alignments/5895_34622_000026_000002.wav, the word "strength" stop as 3.561 sec, so we use first 3.6 sec as the prompt. this should be different for different audio
