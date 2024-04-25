@@ -74,6 +74,8 @@ class WhisperxModel:
 
     def transcribe(self, audio_path):
         segments = self.model.transcribe(audio_path, batch_size=8)["segments"]
+        for segment in segments:
+            segment['text'] = replace_numbers_with_words(segment['text'])
         return self.align_model.align(segments, audio_path)
 
 
@@ -177,7 +179,7 @@ def align(seed, transcript, audio_path):
     if align_model is None:
         raise gr.Error("Align model not loaded")
     seed_everything(seed)
-
+    transcript = replace_numbers_with_words(transcript).replace("  ", " ").replace("  ", " ")
     fragments = align_segments(transcript, audio_path)
     segments = [{
         "start": float(fragment["begin"]),
