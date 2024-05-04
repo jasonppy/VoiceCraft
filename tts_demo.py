@@ -62,10 +62,13 @@ def parse_arguments():
                         default="But when I had approached so near to them The common object, which the sense deceives, Lost not by distance any of its marks,",
                         help="original transcript")
     parser.add_argument("-tt", "--target_transcript", type=str,
-                        default="But when I saw the mirage of the lake in the distance, which the sense deceives, Lost not by distance any of its marks,",
+                        default="object was seen as a mirage in the lake in the distance,",
                         help="target transcript")
     parser.add_argument("-co", "--cut_off_sec", type=float, default=3.6,
                         help="cut off point in seconds for input prompt")
+    parser.add_argument("-ma", "--margin", type=float, default=0.07,
+                    help="lowest margin in seconds between words for input prompt")
+
     args = parser.parse_args()
     return args
 
@@ -135,11 +138,33 @@ os.system("source ~/.bashrc && \
 # if the above fails, it could be because the audio is too hard for the alignment model,
 # increasing the beam size usually solves the issue
 
+def find_closest_word_boundary(alignments, cut_off_sec, margin):
+    with open(alignments, 'r') as file:
+        # skip header
+        next(file)
+        prev_end = 0.0
+        cutoff_time = None
+        cutoff_index = None
+        for i, line in enumerate(file):
+            end = float(line.strip().split(',')[1])
+            if end >= cut_off_sec and end - prev_end >= margin:
+                cutoff_time = end + margin / 2
+                cutoff_index = i
+                break
+
+            prev_end = end
+        
+        return cutoff_time, cutoff_index
+
 # take a look at demo/temp/mfa_alignment, decide which part of the audio to use as prompt
-cut_off_sec = args.cut_off_sec  # NOTE: according to forced-alignment file demo/temp/mfa_alignments/5895_34622_000026_000002.wav, the word "strength" stop as 3.561 sec, so we use first 3.6 sec as the prompt. this should be different for different audio
-target_transcript = args.target_transcript
-# NOTE: 3 sec of reference is generally enough for high quality voice cloning, but longer is generally better, try e.g. 3~6 sec.
+# NOTE: according to forced-alignment file demo/temp/mfa_alignments/5895_34622_000026_000002.wav, the word "strength" stop as 3.561 sec, so we use first 3.6 sec as the prompt. this should be different for different audio
+cut_off_sec = args.cut_off_sec
+margin = args.margin
 audio_fn = f"{temp_folder}/{filename}.wav"
+alignments = f"{temp_folder}/mfa_alignments/{filename}.csv"
+cut_off_sec, cut_off_word_idx = find_closest_word_boundary(alignments, cut_off_sec, margin)
+target_transcript = " ".join(orig_transcript.split(" ")[:cut_off_word_idx]) + " " + args.target_transcript
+# NOTE: 3 sec of reference is generally enough for high quality voice cloning, but longer is generally better, try e.g. 3~6 sec.
 info = torchaudio.info(audio_fn)
 audio_dur = info.num_frames / info.sample_rate
 
