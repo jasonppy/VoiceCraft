@@ -57,7 +57,7 @@ Be sure to first [setup your environment](#environment-setup).
 Without arguments, they will run the standard demo arguments used as an example elsewhere
 in this repository. You can use the command line arguments to specify unique input audios,
 target transcripts, and inference hyperparameters. Run the help command for more information:
-`python3 tts_demo.py -h` and `python3 speech-editing_demo.py -h`
+`python3 tts_demo.py -h`
 
 ## QuickStart Docker
 :star: To try out TTS inference with VoiceCraft, you can also use docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen.

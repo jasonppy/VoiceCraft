@@ -15,8 +15,6 @@ import numpy as np
 import torchaudio
 import torch
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["USER"] = "me"  # TODO change this to your username
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -26,8 +24,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description="VoiceCraft TTS Inference: see the script for more information on the options")
 
-    parser.add_argument("-m", "--model_name", type=str, default="giga330M.pth", choices=[
-                        "giga330M.pth", "gigaHalfLibri330M_TTSEnhanced_max16s.pth", "giga830M.pth"],
+    parser.add_argument("-m", "--model_name", type=str, default="giga830M", choices=[
+                        "giga330M", "giga830M", "giga330M_TTSEnhanced", "giga830M_TTSEnhanced"],
                         help="VoiceCraft model to use")
     parser.add_argument("-st", "--silence_tokens", type=int, nargs="*",
                         default=[1388, 1898, 131], help="Silence token IDs")
@@ -50,24 +48,25 @@ def parse_arguments():
                         default=3, help="Batch size for sampling")
     parser.add_argument("-s", "--seed", type=int,
                         default=1, help="Seed value.")
-    parser.add_argument("-bs", "--beam_size", type=int, default=10,
+    parser.add_argument("-bs", "--beam_size", type=int, default=50,
                         help="beam size for MFA alignment")
-    parser.add_argument("-rbs", "--retry_beam_size", type=int, default=40,
+    parser.add_argument("-rbs", "--retry_beam_size", type=int, default=200,
                         help="retry beam size for MFA alignment")
     parser.add_argument("--output_dir", type=str, default="./generated_tts",
                         help="directory to save generated audio")
     parser.add_argument("-oa", "--original_audio", type=str,
-                        default="./demo/84_121550_000074_000000.wav", help="location of audio file")
+                        default="./demo/5895_34622_000026_000002.wav", help="location of audio file")
     parser.add_argument("-ot", "--original_transcript", type=str,
-                        default="But when I had approached so near to them The common object, which the sense deceives, Lost not by distance any of its marks,",
+                        default="Gwynplaine had, besides, for his work and for his feats of strength, round his neck and over his shoulders, an esclavine of leather.",
                         help="original transcript")
     parser.add_argument("-tt", "--target_transcript", type=str,
-                        default="object was seen as a mirage in the lake in the distance,",
+                        default="I cannot believe that the same model can also do text to speech synthesis too!",
                         help="target transcript")
     parser.add_argument("-co", "--cut_off_sec", type=float, default=3.6,
                         help="cut off point in seconds for input prompt")
-    parser.add_argument("-ma", "--margin", type=float, default=0.07,
-                    help="lowest margin in seconds between words for input prompt")
+    parser.add_argument("-ma", "--margin", type=float, default=0.04,
+                    help="margin in seconds between the end of the cutoff words and the start of the next word. If the next word is not immediately following the cutoff word, the algorithm is more tolerant to word alignment errors")
+    parser.add_argument("-cuttol", "--cutoff_tolerance", type=float, default=1, help="tolerance in seconds for the cutoff time, if given cut_off_sec plus the tolerance, we still are not able to find the next word, we will use the best cutoff time found, i.e. likely no margin or very small margin between the end of the cutoff word and the start of the next word")
 
     args = parser.parse_args()
     return args
@@ -96,6 +95,14 @@ sample_batch_size = args.sample_batch_size
 seed = args.seed  # change seed if you are still unhappy with the result
 
 # load the model
+if voicecraft_name == "330M":
+    voicecraft_name = "giga330M"
+elif voicecraft_name == "830M":
+    voicecraft_name = "giga830M"
+elif voicecraft_name == "330M_TTSEnhanced":
+    voicecraft_name = "330M_TTSEnhanced"
+elif voicecraft_name == "830M_TTSEnhanced":
+    voicecraft_name = "830M_TTSEnhanced"
 model = voicecraft.VoiceCraft.from_pretrained(
     f"pyp1/VoiceCraft_{voicecraft_name.replace('.pth', '')}")
 phn2num = model.args.phn2num
@@ -105,9 +112,7 @@ model.to(device)
 encodec_fn = "./pretrained_models/encodec_4cb2048_giga.th"
 if not os.path.exists(encodec_fn):
     os.system(
-        f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th")
-    os.system(
-        f"mv encodec_4cb2048_giga.th ./pretrained_models/encodec_4cb2048_giga.th")
+        f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th -O ./pretrained_models/encodec_4cb2048_giga.th")
 # will also put the neural codec model on gpu
 audio_tokenizer = AudioTokenizer(signature=encodec_fn, device=device)
 
@@ -130,30 +135,34 @@ with open(f"{temp_folder}/{filename}.txt", "w") as f:
 align_temp = f"{temp_folder}/mfa_alignments"
 beam_size = args.beam_size
 retry_beam_size = args.retry_beam_size
-os.system("source ~/.bashrc && \
-    conda activate voicecraft && \
-    mfa align -v --clean -j 1 --output_format csv {temp_folder} \
-        english_us_arpa english_us_arpa {align_temp} --beam {beam_size} --retry_beam {retry_beam_size}"
-          )
+alignments = f"{temp_folder}/mfa_alignments/{filename}.csv"
+if not os.path.isfile(alignments):
+    os.system(f"mfa align -v --clean -j 1 --output_format csv {temp_folder} \
+            english_us_arpa english_us_arpa {align_temp} --beam {beam_size} --retry_beam {retry_beam_size}")
 # if the above fails, it could be because the audio is too hard for the alignment model,
-# increasing the beam size usually solves the issue
+# increasing the beam_size and retry_beam_size usually solves the issue
 
-def find_closest_word_boundary(alignments, cut_off_sec, margin):
+def find_closest_word_boundary(alignments, cut_off_sec, margin, cutoff_tolerance = 1):
     with open(alignments, 'r') as file:
         # skip header
         next(file)
-        prev_end = 0.0
         cutoff_time = None
         cutoff_index = None
-        for i, line in enumerate(file):
+        cutoff_time_best = None
+        cutoff_index_best = None
+        lines = [l for l in file.readlines()]
+        for i, line in enumerate(lines):
             end = float(line.strip().split(',')[1])
-            if end >= cut_off_sec and end - prev_end >= margin:
-                cutoff_time = end + margin / 2
+            if end >= cut_off_sec and cutoff_time == None:
+                cutoff_time = end
                 cutoff_index = i
-                break
-
-            prev_end = end
-        
+            if end >= cut_off_sec and end < cut_off_sec + cutoff_tolerance and float(lines[i+1].strip().split(',')[0]) - end >= margin:
+                    cutoff_time_best = end + margin * 2 / 3
+                    cutoff_index_best = i
+                    break
+        if cutoff_time_best != None:
+            cutoff_time = cutoff_time_best
+            cutoff_index = cutoff_index_best
         return cutoff_time, cutoff_index
 
 # take a look at demo/temp/mfa_alignment, decide which part of the audio to use as prompt
@@ -161,9 +170,9 @@ def find_closest_word_boundary(alignments, cut_off_sec, margin):
 cut_off_sec = args.cut_off_sec
 margin = args.margin
 audio_fn = f"{temp_folder}/{filename}.wav"
-alignments = f"{temp_folder}/mfa_alignments/{filename}.csv"
-cut_off_sec, cut_off_word_idx = find_closest_word_boundary(alignments, cut_off_sec, margin)
-target_transcript = " ".join(orig_transcript.split(" ")[:cut_off_word_idx]) + " " + args.target_transcript
+
+cut_off_sec, cut_off_word_idx = find_closest_word_boundary(alignments, cut_off_sec, margin, args.cutoff_tolerance)
+target_transcript = " ".join(orig_transcript.split(" ")[:cut_off_word_idx+1]) + " " + args.target_transcript
 # NOTE: 3 sec of reference is generally enough for high quality voice cloning, but longer is generally better, try e.g. 3~6 sec.
 info = torchaudio.info(audio_fn)
 audio_dur = info.num_frames / info.sample_rate
