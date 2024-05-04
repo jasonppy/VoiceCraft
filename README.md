@@ -13,6 +13,8 @@ There are three ways (besides running Gradio in Colab):
 1. More flexible inference beyond Gradio UI in Google Colab. see [quickstart colab](#quickstart-colab)
 2. with docker. see [quickstart docker](#quickstart-docker)
 3. without docker. see [environment setup](#environment-setup). You can also run gradio locally if you choose this option
+4. As a standalone script that you can easily integrate into other projects.
+see [quickstart command line](#quickstart-command-line).
 
 When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
 
@@ -21,7 +23,7 @@ If you want to do model development such as training/finetuning, I recommend fol
 ## News
 :star: 04/22/2024: 330M/830M TTS Enhanced Models are up [here](https://huggingface.co/pyp1), load them through [`gradio_app.py`](./gradio_app.py) or [`inference_tts.ipynb`](./inference_tts.ipynb)! Replicate demo is up, major thanks to [@chenxwh](https://github.com/chenxwh)!
 
-:star: 04/11/2024: VoiceCraft Gradio is now available on HuggingFace Spaces [here](https://huggingface.co/spaces/pyp1/VoiceCraft_gradio)! Major thanks to [@zuev-stepan](https://github.com/zuev-stepan), [@Sewlell](https://github.com/Sewlell), [@pgsoar](https://github.com/pgosar) [@Ph0rk0z](https://github.com/Ph0rk0z). 
+:star: 04/11/2024: VoiceCraft Gradio is now available on HuggingFace Spaces [here](https://huggingface.co/spaces/pyp1/VoiceCraft_gradio)! Major thanks to [@zuev-stepan](https://github.com/zuev-stepan), [@Sewlell](https://github.com/Sewlell), [@pgsoar](https://github.com/pgosar) [@Ph0rk0z](https://github.com/Ph0rk0z).
 
 :star: 04/05/2024: I finetuned giga330M with the TTS objective on gigaspeech and 1/5 of librilight. Weights are [here](https://huggingface.co/pyp1/VoiceCraft/tree/main). Make sure maximal prompt + generation length <= 16 seconds (due to our limited compute, we had to drop utterances longer than 16s in training data). Even stronger models forthcomming, stay tuned!
 
@@ -37,10 +39,8 @@ If you want to do model development such as training/finetuning, I recommend fol
 - [x] Better guidance on training/finetuning
 - [x] Colab notebooks
 - [x] HuggingFace Spaces demo
-- [ ] Command line
+- [x] Command line
 - [ ] Improve efficiency
-
-
 
 ## QuickStart Colab
 
@@ -49,6 +49,15 @@ Instructions to run are on the Colab itself.
 
 1. To try [Speech Editing](https://colab.research.google.com/drive/1FV7EC36dl8UioePY1xXijXTMl7X47kR_?usp=sharing)
 2. To try [TTS Inference](https://colab.research.google.com/drive/1lch_6it5-JpXgAQlUTRRI2z2_rk5K67Z?usp=sharing)
+
+## QuickStart Command Line
+
+:star: To use it as a standalone script, check out tts_demo.py and speech_editing_demo.py.
+Be sure to first [setup your environment](#environment-setup).
+Without arguments, they will run the standard demo arguments used as an example elsewhere
+in this repository. You can use the command line arguments to specify unique input audios,
+target transcripts, and inference hyperparameters. Run the help command for more information:
+`python3 tts_demo.py -h`
 
 ## QuickStart Docker
 :star: To try out TTS inference with VoiceCraft, you can also use docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen.
@@ -197,7 +206,7 @@ cd ./z_scripts
 bash e830M.sh
 ```
 
-It's the same procedure to prepare your own custom dataset. Make sure that if 
+It's the same procedure to prepare your own custom dataset. Make sure that if
 
 ## Finetuning
 You also need to do step 1-4 as Training, and I recommend to use AdamW for optimization if you finetune a pretrained model for better stability. checkout script `./z_scripts/e830M_ft.sh`.
