@@ -78,7 +78,6 @@ class Trainer:
 
                 if self.rank == 0 and self.progress['step'] % self.args.tb_write_every_n_steps == 0:
                     self.writer.add_scalar("train/lr", cur_lr, self.progress['step'])
-                    self.wandb.log({"train/lr": cur_lr}, step=self.progress['step'])
 
                 all_inds = list(range(len(batch['y'])))
                 sum_losses = 0

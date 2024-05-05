@@ -1,4 +1,6 @@
 import os
+import re
+from num2words import num2words
 import gradio as gr
 import torch
 import torchaudio
@@ -11,7 +13,8 @@ import io
 import numpy as np
 import random
 import uuid
-
+import nltk
+nltk.download('punkt')
 
 DEMO_PATH = os.getenv("DEMO_PATH", "./demo")
 TMP_PATH = os.getenv("TMP_PATH", "./demo/temp")
@@ -71,14 +74,22 @@ class WhisperxModel:
 
     def transcribe(self, audio_path):
         segments = self.model.transcribe(audio_path, batch_size=8)["segments"]
+        for segment in segments:
+            segment['text'] = replace_numbers_with_words(segment['text'])
         return self.align_model.align(segments, audio_path)
 
 
 def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, voicecraft_model_name):
     global transcribe_model, align_model, voicecraft_model
 
-    if voicecraft_model_name == "giga330M_TTSEnhanced":
-        voicecraft_model_name = "gigaHalfLibri330M_TTSEnhanced_max16s"
+    if voicecraft_model_name == "330M":
+        voicecraft_model_name = "giga330M"
+    elif voicecraft_model_name == "830M":
+        voicecraft_model_name = "giga830M"
+    elif voicecraft_model_name == "330M_TTSEnhanced":
+        voicecraft_model_name = "330M_TTSEnhanced"
+    elif voicecraft_model_name == "830M_TTSEnhanced":
+        voicecraft_model_name = "830M_TTSEnhanced"
 
     if alignment_model_name is not None:
         align_model = WhisperxAlignModel()
@@ -99,7 +110,7 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
 
     encodec_fn = f"{MODELS_PATH}/encodec_4cb2048_giga.th"
     if not os.path.exists(encodec_fn):
-        os.system(f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th")
+        os.system(f"wget https://huggingface.co/pyp1/VoiceCraft/resolve/main/encodec_4cb2048_giga.th -O " + encodec_fn)
 
     voicecraft_model = {
         "config": config,
@@ -113,9 +124,11 @@ def load_models(whisper_backend_name, whisper_model_name, alignment_model_name, 
 
 def get_transcribe_state(segments):
     words_info = [word_info for segment in segments for word_info in segment["words"]]
+    transcript = " ".join([segment["text"] for segment in segments])
+    transcript = transcript[1:] if transcript[0] == " " else transcript
     return {
         "segments": segments,
-        "transcript": " ".join([segment["text"] for segment in segments]),
+        "transcript": transcript,
         "words_info": words_info,
         "transcript_with_start_time": " ".join([f"{word['start']} {word['word']}" for word in words_info]),
         "transcript_with_end_time": " ".join([f"{word['word']} {word['end']}" for word in words_info]),
@@ -166,7 +179,7 @@ def align(seed, transcript, audio_path):
     if align_model is None:
         raise gr.Error("Align model not loaded")
     seed_everything(seed)
-
+    transcript = replace_numbers_with_words(transcript).replace("  ", " ").replace("  ", " ")
     fragments = align_segments(transcript, audio_path)
     segments = [{
         "start": float(fragment["begin"]),
@@ -192,6 +205,15 @@ def get_output_audio(audio_tensors, codec_audio_sr):
     buffer.seek(0)
     return buffer.read()
 
+def replace_numbers_with_words(sentence):
+    sentence = re.sub(r'(\d+)', r' \1 ', sentence) # add spaces around numbers
+    def replace_with_words(match):
+        num = match.group(0)
+        try:
+            return num2words(num) # Convert numbers to words
+        except:
+            return num # In case num2words fails (unlikely with digits but just to be safe)
+    return re.sub(r'\b\d+\b', replace_with_words, sentence) # Regular expression that matches numbers
 
 def run(seed, left_margin, right_margin, codec_audio_sr, codec_sr, top_k, top_p, temperature,
         stop_repetition, sample_batch_size, kvcache, silence_tokens,
@@ -204,6 +226,8 @@ def run(seed, left_margin, right_margin, codec_audio_sr, codec_sr, top_k, top_p,
         raise gr.Error("Can't use smart transcript: whisper transcript not found")
 
     seed_everything(seed)
+    transcript = replace_numbers_with_words(transcript).replace("  ", " ").replace("  ", " ") # replace numbers with words, so that the phonemizer can do a better job
+
     if mode == "Long TTS":
         if split_text == "Newline":
             sentences = transcript.split('\n')
@@ -362,50 +386,32 @@ If disabled, you should write the target transcript yourself:</br>
  - In Edit mode write full prompt</br>
 """
 
-demo_original_transcript = " But when I had approached so near to them, the common object, which the sense deceives, lost not by distance any of its marks."
+demo_original_transcript = "Gwynplaine had, besides, for his work and for his feats of strength, round his neck and over his shoulders, an esclavine of leather."
 
 demo_text = {
     "TTS": {
         "smart": "I cannot believe that the same model can also do text to speech synthesis too!",
-        "regular": "But when I had approached so near to them, the common I cannot believe that the same model can also do text to speech synthesis too!"
+        "regular": "Gwynplaine had, besides, for his work and for his feats of strength, I cannot believe that the same model can also do text to speech synthesis too!"
     },
     "Edit": {
-        "smart": "saw the mirage of the lake in the distance,",
-        "regular": "But when I saw the mirage of the lake in the distance, which the sense deceives, Lost not by distance any of its marks,"
+        "smart": "take over the stage for half an hour,",
+        "regular": "Gwynplaine had, besides, for his work and for his feats of strength, take over the stage for half an hour, an esclavine of leather."
     },
     "Long TTS": {
         "smart": "You can run the model on a big text!\n"
                  "Just write it line-by-line. Or sentence-by-sentence.\n"
                  "If some sentences sound odd, just rerun the model on them, no need to generate the whole text again!",
-        "regular": "But when I had approached so near to them, the common You can run the model on a big text!\n"
-                   "But when I had approached so near to them, the common Just write it line-by-line. Or sentence-by-sentence.\n"
-                   "But when I had approached so near to them, the common If some sentences sound odd, just rerun the model on them, no need to generate the whole text again!"
+        "regular": "Gwynplaine had, besides, for his work and for his feats of strength, You can run the model on a big text!\n"
+                   "Gwynplaine had, besides, for his work and for his feats of strength, Just write it line-by-line. Or sentence-by-sentence.\n"
+                   "Gwynplaine had, besides, for his work and for his feats of strength, If some sentences sound odd, just rerun the model on them, no need to generate the whole text again!"
     }
 }
 
 all_demo_texts = {vv for k, v in demo_text.items() for kk, vv in v.items()}
 
-demo_words = [
-    '0.029 But 0.149', '0.189 when 0.33', '0.43 I 0.49', '0.53 had 0.65', '0.711 approached 1.152', '1.352 so 1.593',
-    '1.693 near 1.933', '1.994 to 2.074', '2.134 them, 2.354', '2.535 the 2.655', '2.695 common 3.016', '3.196 object, 3.577',
-    '3.717 which 3.898', '3.958 the 4.058', '4.098 sense 4.359', '4.419 deceives, 4.92', '5.101 lost 5.481', '5.682 not 5.963',
-    '6.043 by 6.183', '6.223 distance 6.644', '6.905 any 7.065', '7.125 of 7.185', '7.245 its 7.346', '7.406 marks. 7.727'
-]
+demo_words = ['0.069 Gwynplain 0.611', '0.671 had, 0.912', '0.952 besides, 1.414', '1.494 for 1.634', '1.695 his 1.835', '1.915 work 2.136', '2.196 and 2.297', '2.337 for 2.517', '2.557 his 2.678', '2.758 feats 3.019', '3.079 of 3.139', '3.2 strength, 3.561', '4.022 round 4.263', '4.303 his 4.444', '4.524 neck 4.705', '4.745 and 4.825', '4.905 over 5.086', '5.146 his 5.266', '5.307 shoulders, 5.768', '6.23 an 6.33', '6.531 esclavine 7.133', '7.213 of 7.293', '7.353 leather. 7.614']
 
-demo_words_info = [
-    {'word': 'But', 'start': 0.029, 'end': 0.149, 'score': 0.834}, {'word': 'when', 'start': 0.189, 'end': 0.33, 'score': 0.879},
-    {'word': 'I', 'start': 0.43, 'end': 0.49, 'score': 0.984}, {'word': 'had', 'start': 0.53, 'end': 0.65, 'score': 0.998},
-    {'word': 'approached', 'start': 0.711, 'end': 1.152, 'score': 0.822}, {'word': 'so', 'start': 1.352, 'end': 1.593, 'score': 0.822},
-    {'word': 'near', 'start': 1.693, 'end': 1.933, 'score': 0.752}, {'word': 'to', 'start': 1.994, 'end': 2.074, 'score': 0.924},
-    {'word': 'them,', 'start': 2.134, 'end': 2.354, 'score': 0.914}, {'word': 'the', 'start': 2.535, 'end': 2.655, 'score': 0.818},
-    {'word': 'common', 'start': 2.695, 'end': 3.016, 'score': 0.971}, {'word': 'object,', 'start': 3.196, 'end': 3.577, 'score': 0.823},
-    {'word': 'which', 'start': 3.717, 'end': 3.898, 'score': 0.701}, {'word': 'the', 'start': 3.958, 'end': 4.058, 'score': 0.798},
-    {'word': 'sense', 'start': 4.098, 'end': 4.359, 'score': 0.797}, {'word': 'deceives,', 'start': 4.419, 'end': 4.92, 'score': 0.802},
-    {'word': 'lost', 'start': 5.101, 'end': 5.481, 'score': 0.71}, {'word': 'not', 'start': 5.682, 'end': 5.963, 'score': 0.781},
-    {'word': 'by', 'start': 6.043, 'end': 6.183, 'score': 0.834}, {'word': 'distance', 'start': 6.223, 'end': 6.644, 'score': 0.899},
-    {'word': 'any', 'start': 6.905, 'end': 7.065, 'score': 0.893}, {'word': 'of', 'start': 7.125, 'end': 7.185, 'score': 0.772},
-    {'word': 'its', 'start': 7.245, 'end': 7.346, 'score': 0.778}, {'word': 'marks.', 'start': 7.406, 'end': 7.727, 'score': 0.955}
-]
+demo_words_info = [{'word': 'Gwynplain', 'start': 0.069, 'end': 0.611, 'score': 0.833}, {'word': 'had,', 'start': 0.671, 'end': 0.912, 'score': 0.879}, {'word': 'besides,', 'start': 0.952, 'end': 1.414, 'score': 0.863}, {'word': 'for', 'start': 1.494, 'end': 1.634, 'score': 0.89}, {'word': 'his', 'start': 1.695, 'end': 1.835, 'score': 0.669}, {'word': 'work', 'start': 1.915, 'end': 2.136, 'score': 0.916}, {'word': 'and', 'start': 2.196, 'end': 2.297, 'score': 0.766}, {'word': 'for', 'start': 2.337, 'end': 2.517, 'score': 0.808}, {'word': 'his', 'start': 2.557, 'end': 2.678, 'score': 0.786}, {'word': 'feats', 'start': 2.758, 'end': 3.019, 'score': 0.97}, {'word': 'of', 'start': 3.079, 'end': 3.139, 'score': 0.752}, {'word': 'strength,', 'start': 3.2, 'end': 3.561, 'score': 0.742}, {'word': 'round', 'start': 4.022, 'end': 4.263, 'score': 0.916}, {'word': 'his', 'start': 4.303, 'end': 4.444, 'score': 0.666}, {'word': 'neck', 'start': 4.524, 'end': 4.705, 'score': 0.908}, {'word': 'and', 'start': 4.745, 'end': 4.825, 'score': 0.882}, {'word': 'over', 'start': 4.905, 'end': 5.086, 'score': 0.847}, {'word': 'his', 'start': 5.146, 'end': 5.266, 'score': 0.791}, {'word': 'shoulders,', 'start': 5.307, 'end': 5.768, 'score': 0.729}, {'word': 'an', 'start': 6.23, 'end': 6.33, 'score': 0.854}, {'word': 'esclavine', 'start': 6.531, 'end': 7.133, 'score': 0.803}, {'word': 'of', 'start': 7.213, 'end': 7.293, 'score': 0.772}, {'word': 'leather.', 'start': 7.353, 'end': 7.614, 'score': 0.896}]
 
 
 def update_demo(mode, smart_transcript, edit_word_mode, transcript, edit_from_word, edit_to_word):
@@ -432,19 +438,19 @@ def get_app():
             with gr.Column(scale=5):
                 with gr.Accordion("Select models", open=False) as models_selector:
                     with gr.Row():
-                        voicecraft_model_choice = gr.Radio(label="VoiceCraft model", value="giga830M",
-                                                        choices=["giga330M", "giga830M", "giga330M_TTSEnhanced"])
-                        whisper_backend_choice = gr.Radio(label="Whisper backend", value="whisperX", choices=["whisper", "whisperX"])
+                        voicecraft_model_choice = gr.Radio(label="VoiceCraft model", value="830M_TTSEnhanced",
+                                                        choices=["330M", "830M", "330M_TTSEnhanced", "830M_TTSEnhanced"])
+                        whisper_backend_choice = gr.Radio(label="Whisper backend", value="whisperX", choices=["whisperX", "whisper"])
                         whisper_model_choice = gr.Radio(label="Whisper model", value="base.en",
                                                         choices=[None, "base.en", "small.en", "medium.en", "large"])
-                        align_model_choice = gr.Radio(label="Forced alignment model", value="whisperX", choices=[None, "whisperX"])
+                        align_model_choice = gr.Radio(label="Forced alignment model", value="whisperX", choices=["whisperX", None])
 
         with gr.Row():
             with gr.Column(scale=2):
-                input_audio = gr.Audio(value=f"{DEMO_PATH}/84_121550_000074_000000.wav", label="Input Audio", type="filepath", interactive=True)
+                input_audio = gr.Audio(value=f"{DEMO_PATH}/5895_34622_000026_000002.wav", label="Input Audio", type="filepath", interactive=True)
                 with gr.Group():
                     original_transcript = gr.Textbox(label="Original transcript", lines=5, value=demo_original_transcript,
-                                                    info="Use whisper model to get the transcript. Fix and align it if necessary.")
+                                                    info="Use whisperx model to get the transcript. Fix and align it if necessary.")
                     with gr.Accordion("Word start time", open=False):
                         transcript_with_start_time = gr.Textbox(label="Start time", lines=5, interactive=False, info="Start time before each word")
                     with gr.Accordion("Word end time", open=False):
@@ -465,20 +471,20 @@ def get_app():
                         mode = gr.Radio(label="Mode", choices=["TTS", "Edit", "Long TTS"], value="TTS")
                         split_text = gr.Radio(label="Split text", choices=["Newline", "Sentence"], value="Newline",
                                             info="Split text into parts and run TTS for each part.", visible=False)
-                        edit_word_mode = gr.Radio(label="Edit word mode", choices=["Replace half", "Replace all"], value="Replace half",
+                        edit_word_mode = gr.Radio(label="Edit word mode", choices=["Replace half", "Replace all"], value="Replace all",
                                                 info="What to do with first and last word", visible=False)
 
                     with gr.Group() as tts_mode_controls:
-                        prompt_to_word = gr.Dropdown(label="Last word in prompt", choices=demo_words, value=demo_words[10], interactive=True)
-                        prompt_end_time = gr.Slider(label="Prompt end time", minimum=0, maximum=7.93, step=0.001, value=3.016)
+                        prompt_to_word = gr.Dropdown(label="Last word in prompt", choices=demo_words, value=demo_words[11], interactive=True)
+                        prompt_end_time = gr.Slider(label="Prompt end time", minimum=0, maximum=7.614, step=0.001, value=3.600)
 
                     with gr.Group(visible=False) as edit_mode_controls:
                         with gr.Row():
-                            edit_from_word = gr.Dropdown(label="First word to edit", choices=demo_words, value=demo_words[2], interactive=True)
-                            edit_to_word = gr.Dropdown(label="Last word to edit", choices=demo_words, value=demo_words[12], interactive=True)
+                            edit_from_word = gr.Dropdown(label="First word to edit", choices=demo_words, value=demo_words[12], interactive=True)
+                            edit_to_word = gr.Dropdown(label="Last word to edit", choices=demo_words, value=demo_words[18], interactive=True)
                         with gr.Row():
-                            edit_start_time = gr.Slider(label="Edit from time", minimum=0, maximum=7.93, step=0.001, value=0.46)
-                            edit_end_time = gr.Slider(label="Edit to time", minimum=0, maximum=7.93, step=0.001, value=3.808)
+                            edit_start_time = gr.Slider(label="Edit from time", minimum=0, maximum=7.614, step=0.001, value=4.022)
+                            edit_end_time = gr.Slider(label="Edit to time", minimum=0, maximum=7.614, step=0.001, value=5.768)
 
                     run_btn = gr.Button(value="Run")
 
@@ -497,7 +503,7 @@ def get_app():
             with gr.Accordion("Generation Parameters - change these if you are unhappy with the generation", open=False):
                 stop_repetition = gr.Radio(label="stop_repetition", choices=[-1, 1, 2, 3, 4], value=3,
                                         info="if there are long silence in the generated audio, reduce the stop_repetition to 2 or 1. -1 = disabled")
-                sample_batch_size = gr.Number(label="speech rate", value=4, precision=0,
+                sample_batch_size = gr.Number(label="speech rate", value=3, precision=0,
                                             info="The higher the number, the faster the output will be. "
                                                 "Under the hood, the model will generate this many samples and choose the shortest one. "
                                                 "For giga330M_TTSEnhanced, 1 or 2 should be fine since the model is trained to do TTS.")
@@ -602,6 +608,7 @@ if __name__ == "__main__":
     parser.add_argument("--models-path", default="./pretrained_models", help="Path to voicecraft models directory")
     parser.add_argument("--port", default=7860, type=int, help="App port")
     parser.add_argument("--share", action="store_true", help="Launch with public url")
+    parser.add_argument("--server_name", default="127.0.0.1", type=str, help="Server name for launching the app. 127.0.0.1 for localhost; 0.0.0.0 to allow access from other machines in the local network. Might also give access to external users depends on the firewall settings.")
 
     os.environ["USER"] = os.getenv("USER", "user")
     args = parser.parse_args()
@@ -610,4 +617,4 @@ if __name__ == "__main__":
     MODELS_PATH = args.models_path
 
     app = get_app()
-    app.queue().launch(share=args.share, server_port=args.port)
+    app.queue().launch(share=args.share, server_name=args.server_name, server_port=args.port)

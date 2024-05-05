@@ -1,5 +1,6 @@
 # VoiceCraft: Zero-Shot Speech Editing and Text-to-Speech in the Wild
-[![Paper](https://img.shields.io/badge/arXiv-2301.12503-brightgreen.svg?style=flat-square)](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf)  [![githubio](https://img.shields.io/badge/GitHub.io-Audio_Samples-blue?logo=Github&style=flat-square)](https://jasonppy.github.io/VoiceCraft_web/)  [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/pyp1/VoiceCraft_gradio)  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1IOjpglQyMTO2C3Y94LD9FY0Ocn-RJRg6?usp=sharing)
+[![Paper](https://img.shields.io/badge/arXiv-2403.16973-brightgreen.svg?style=flat-square)](https://arxiv.org/pdf/2403.16973.pdf)  [![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/pyp1/VoiceCraft_gradio)  [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1IOjpglQyMTO2C3Y94LD9FY0Ocn-RJRg6?usp=sharing)  [![Replicate](https://replicate.com/cjwbw/voicecraft/badge)](https://replicate.com/cjwbw/voicecraft)  [![YouTube demo](https://img.shields.io/youtube/views/eikybOi8iwU)](https://youtu.be/eikybOi8iwU)  [![Demo page](https://img.shields.io/badge/Audio_Samples-blue?logo=Github&style=flat-square)](https://jasonppy.github.io/VoiceCraft_web/)
+
 
 ### TL;DR
 VoiceCraft is a token infilling neural codec language model, that achieves state-of-the-art performance on both **speech editing** and **zero-shot text-to-speech (TTS)** on in-the-wild data including audiobooks, internet videos, and podcasts.
@@ -12,13 +13,17 @@ There are three ways (besides running Gradio in Colab):
 1. More flexible inference beyond Gradio UI in Google Colab. see [quickstart colab](#quickstart-colab)
 2. with docker. see [quickstart docker](#quickstart-docker)
 3. without docker. see [environment setup](#environment-setup). You can also run gradio locally if you choose this option
+4. As a standalone script that you can easily integrate into other projects.
+see [quickstart command line](#quickstart-command-line).
 
 When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
 
 If you want to do model development such as training/finetuning, I recommend following [envrionment setup](#environment-setup) and [training](#training).
 
 ## News
-:star: 04/11/2024: VoiceCraft Gradio is now available on HuggingFace Spaces [here](https://huggingface.co/spaces/pyp1/VoiceCraft_gradio)! Major thanks to [@zuev-stepan](https://github.com/zuev-stepan), [@Sewlell](https://github.com/Sewlell), [@pgsoar](https://github.com/pgosar) [@Ph0rk0z](https://github.com/Ph0rk0z). 
+:star: 04/22/2024: 330M/830M TTS Enhanced Models are up [here](https://huggingface.co/pyp1), load them through [`gradio_app.py`](./gradio_app.py) or [`inference_tts.ipynb`](./inference_tts.ipynb)! Replicate demo is up, major thanks to [@chenxwh](https://github.com/chenxwh)!
+
+:star: 04/11/2024: VoiceCraft Gradio is now available on HuggingFace Spaces [here](https://huggingface.co/spaces/pyp1/VoiceCraft_gradio)! Major thanks to [@zuev-stepan](https://github.com/zuev-stepan), [@Sewlell](https://github.com/Sewlell), [@pgsoar](https://github.com/pgosar) [@Ph0rk0z](https://github.com/Ph0rk0z).
 
 :star: 04/05/2024: I finetuned giga330M with the TTS objective on gigaspeech and 1/5 of librilight. Weights are [here](https://huggingface.co/pyp1/VoiceCraft/tree/main). Make sure maximal prompt + generation length <= 16 seconds (due to our limited compute, we had to drop utterances longer than 16s in training data). Even stronger models forthcomming, stay tuned!
 
@@ -30,14 +35,12 @@ If you want to do model development such as training/finetuning, I recommend fol
 - [x] Inference demo for speech editing and TTS
 - [x] Training guidance
 - [x] RealEdit dataset and training manifest
-- [x] Model weights (giga330M.pth, giga830M.pth, and gigaHalfLibri330M_TTSEnhanced_max16s.pth)
+- [x] Model weights
 - [x] Better guidance on training/finetuning
 - [x] Colab notebooks
 - [x] HuggingFace Spaces demo
-- [ ] Command line
+- [x] Command line
 - [ ] Improve efficiency
-
-
 
 ## QuickStart Colab
 
@@ -46,6 +49,15 @@ Instructions to run are on the Colab itself.
 
 1. To try [Speech Editing](https://colab.research.google.com/drive/1FV7EC36dl8UioePY1xXijXTMl7X47kR_?usp=sharing)
 2. To try [TTS Inference](https://colab.research.google.com/drive/1lch_6it5-JpXgAQlUTRRI2z2_rk5K67Z?usp=sharing)
+
+## QuickStart Command Line
+
+:star: To use it as a standalone script, check out tts_demo.py and speech_editing_demo.py.
+Be sure to first [setup your environment](#environment-setup).
+Without arguments, they will run the standard demo arguments used as an example elsewhere
+in this repository. You can use the command line arguments to specify unique input audios,
+target transcripts, and inference hyperparameters. Run the help command for more information:
+`python3 tts_demo.py -h`
 
 ## QuickStart Docker
 :star: To try out TTS inference with VoiceCraft, you can also use docker. Thank [@ubergarm](https://github.com/ubergarm) and [@jayc88](https://github.com/jay-c88) for making this happen.
@@ -194,7 +206,7 @@ cd ./z_scripts
 bash e830M.sh
 ```
 
-It's the same procedure to prepare your own custom dataset. Make sure that if 
+It's the same procedure to prepare your own custom dataset. Make sure that if
 
 ## Finetuning
 You also need to do step 1-4 as Training, and I recommend to use AdamW for optimization if you finetune a pretrained model for better stability. checkout script `./z_scripts/e830M_ft.sh`.
@@ -210,7 +222,7 @@ We thank Feiteng for his [VALL-E reproduction](https://github.com/lifeiteng/vall
 ## Citation
 ```
 @article{peng2024voicecraft,
-  author    = {Peng, Puyuan and Huang, Po-Yao and Li, Daniel and Mohamed, Abdelrahman and Harwath, David},
+  author    = {Peng, Puyuan and Huang, Po-Yao and Mohamed, Abdelrahman and Harwath, David},
   title     = {VoiceCraft: Zero-Shot Speech Editing and Text-to-Speech in the Wild},
   journal   = {arXiv},
   year      = {2024},
