@@ -37,13 +37,15 @@ def levenshtein_distance(word1, word2):
 
 
 def extract_words(sentence):
-    words = re.findall(r"\b\w+\b", sentence)
+    words = re.findall(r"\b[\w']+\b", sentence)
     return words
+
 
 # edge cases for spans of deletion, insertion, substitution
 def handle_delete(start, end, orig, new):
     orig.append([start, end - 1])
     new.append([start - 1, start])
+
 
 def handle_insert(start, end, orig, new):
     temp_new = [start - 1, start]
@@ -51,27 +53,31 @@ def handle_insert(start, end, orig, new):
     new.append(orig[-1])
     orig[-1], new[-1] = new[-1], temp_new
 
+
 def handle_substitute(start, end, orig, new):
     orig.append([start, end - 1])
     new.append([start, end - 1])
 
+
 # editing the last index of the sentence is another edge case
 def handle_last_operation(prev_op, start, end, orig, new):
-    if prev_op == 'd':
+    if prev_op == "d":
         handle_delete(start, end, orig, new)
-    elif prev_op == 'i':
+    elif prev_op == "i":
         handle_insert(start, end, orig, new)
-    elif prev_op == 's':
+    elif prev_op == "s":
         handle_substitute(start, end, orig, new)
+
 
 # adjust spans according to edge case expected output
 def adjust_last_span(operations, orig, new):
-    if operations[-1] == 'd':
+    if operations[-1] == "d":
         new[-1] = [new[-1][0] - 1, new[-1][1] - 1]
         orig[-1] = [orig[-1][0] - 1, orig[-1][0] - 1]
-    elif operations[-1] == 'i':
+    elif operations[-1] == "i":
         new[-1] = [new[-1][0] - 1, new[-1][1] - 1]
         orig[-1] = [orig[-1][0] - 1, orig[-1][0]]
+
 
 def get_spans(operations):
     orig = []
@@ -81,7 +87,7 @@ def get_spans(operations):
     end = 0
     for i, op in enumerate(operations):
         # prevent span duplication of sequential edits of the same type
-        if op != '=':
+        if op != "=":
             if op != prev_op:
                 if prev_op:
                     handle_last_operation(prev_op, start, end, orig, new)
@@ -99,18 +105,20 @@ def get_spans(operations):
     adjust_last_span(operations, orig, new)
     return orig, new
 
+
 def get_edits(operations):
     used_edits = []
-    prev_op = ''
+    prev_op = ""
     for op in operations:
-        if op == 'i' and prev_op != 'i':
+        if op == "i" and prev_op != "i":
             used_edits.append("insertion")
-        elif op == 'd' and prev_op != 'd':
+        elif op == "d" and prev_op != "d":
             used_edits.append("deletion")
-        elif op == 's' and prev_op != 's':
+        elif op == "s" and prev_op != "s":
             used_edits.append("substitution")
         prev_op = op
     return used_edits
+
 
 def parse_edit(orig_transcript, trgt_transcript):
     word1 = extract_words(orig_transcript)
