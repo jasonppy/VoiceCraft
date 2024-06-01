@@ -3,6 +3,7 @@ import random
 import numpy as np
 import logging
 import argparse, copy
+from typing import Dict, Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,6 +18,10 @@ from .modules.transformer import (
     TransformerEncoderLayer,
 )
 from .codebooks_patterns import DelayedPatternProvider
+
+from argparse import Namespace
+from huggingface_hub import PyTorchModelHubMixin
+
 
 def top_k_top_p_filtering(
     logits, top_k=0, top_p=1.0, filter_value=-float("Inf"), min_tokens_to_keep=1
@@ -82,9 +87,31 @@ def topk_sampling(logits, top_k=10, top_p=1.0, temperature=1.0):
 
 
 
-class VoiceCraft(nn.Module):
-    def __init__(self, args):
+class VoiceCraft(
+        nn.Module,
+        PyTorchModelHubMixin,
+        library_name="voicecraft",
+        repo_url="https://github.com/jasonppy/VoiceCraft",
+        tags=["text-to-speech"],
+    ):
+    def __new__(cls, args: Optional[Namespace] = None, config: Optional[Dict] = None, **kwargs) -> "VoiceCraft":
+        # If initialized from Namespace args => convert to dict config for 'PyTorchModelHubMixin' to serialize it as config.json
+        # Won't affect instance initialization
+        if args is not None:
+            if config is not None:
+                raise ValueError("Cannot provide both `args` and `config`.")
+            config = vars(args)
+        return super().__new__(cls, args=args, config=config, **kwargs)
+
+    def __init__(self, args: Optional[Namespace] = None, config: Optional[Dict] = None):
         super().__init__()
+
+        # If loaded from HF Hub => convert config.json to Namespace args before initializing
+        if args is None:
+            if config is None:
+                raise ValueError("Either `args` or `config` must be provided.")
+            args = Namespace(**config)
+
         self.args = copy.copy(args)
         self.pattern = DelayedPatternProvider(n_q=self.args.n_codebooks)
         if not getattr(self.args, "special_first", False):
@@ -96,7 +123,7 @@ class VoiceCraft(nn.Module):
         if self.args.eos > 0:
             assert self.args.eos != self.args.audio_pad_token and self.args.eos != self.args.empty_token, self.args.eos
             self.eos = nn.Parameter(torch.full((self.args.n_codebooks, 1), self.args.eos, dtype=torch.long), requires_grad=False) # [K 1]
-        if type(self.args.audio_vocab_size) == str:
+        if isinstance(self.args.audio_vocab_size, str):
             self.args.audio_vocab_size = eval(self.args.audio_vocab_size)
 
         self.n_text_tokens = self.args.text_vocab_size + 1
@@ -409,6 +436,10 @@ class VoiceCraft(nn.Module):
                 .expand(-1, self.args.nhead, -1, -1)
                 .reshape(bsz * self.args.nhead, 1, src_len)
             )
+            # Check shapes and resize+broadcast as necessary
+            if xy_attn_mask.shape != _xy_padding_mask.shape:
+                assert xy_attn_mask.ndim + 1 == _xy_padding_mask.ndim, f"xy_attn_mask.shape: {xy_attn_mask.shape}, _xy_padding_mask: {_xy_padding_mask.shape}"
+                xy_attn_mask = xy_attn_mask.unsqueeze(0).repeat(_xy_padding_mask.shape[0], 1, 1)  # Example approach
             xy_attn_mask = xy_attn_mask.logical_or(_xy_padding_mask)
 
             new_attn_mask = torch.zeros_like(xy_attn_mask)
@@ -454,8 +485,10 @@ class VoiceCraft(nn.Module):
             before padding.
         """
         x, x_lens, y, y_lens = batch["x"], batch["x_lens"], batch["y"], batch["y_lens"]
+        if len(x) == 0:
+            return None
         x = x[:, :x_lens.max()] # this deal with gradient accumulation, where x_lens.max() might not be longer than the length of the current slice of x
-        y = y[:, :y_lens.max()]
+        y = y[:, :, :y_lens.max()]
         assert x.ndim == 2, x.shape
         assert x_lens.ndim == 1, x_lens.shape
         assert y.ndim == 3 and y.shape[1] == self.args.n_codebooks, y.shape
