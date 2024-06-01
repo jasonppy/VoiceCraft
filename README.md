@@ -18,7 +18,7 @@ see [quickstart command line](#quickstart-command-line).
 
 When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
 
-If you want to do model development such as training/finetuning, I recommend following [envrionment setup](#environment-setup) and [training](#training).
+If you want to do model development such as training/finetuning, I recommend following [environment setup](#environment-setup) and [training](#training).
 
 ## News
 :star: 04/22/2024: 330M/830M TTS Enhanced Models are up [here](https://huggingface.co/pyp1), load them through [`gradio_app.py`](./gradio_app.py) or [`inference_tts.ipynb`](./inference_tts.ipynb)! Replicate demo is up, major thanks to [@chenxwh](https://github.com/chenxwh)!
