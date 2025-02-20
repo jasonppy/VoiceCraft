@@ -45,5 +45,5 @@ def get_span(orig, new, editType):
 
     if not flag:
         raise RuntimeError(f"wrong editing with the specified edit type:\n original: {orig}\n new: {new}\n, editType: {editType}")
-
+    print("1")
     return orig_span, new_span    
