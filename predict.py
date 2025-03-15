@@ -184,7 +184,7 @@ class Predictor(BasePredictor):
         ),
         top_p: float = Input(
             description="Default value for TTS is 0.9, and 0.8 for speech editing",
-            default=0.9,
+            default=1,
         ),
         stop_repetition: int = Input(
             default=3,
@@ -234,7 +234,7 @@ class Predictor(BasePredictor):
         # hyperparameters for inference
         codec_audio_sr = 16000
         codec_sr = 50
-        top_k = 0
+        top_k = 40
         silence_tokens = [1388, 1898, 131]
 
         if voicecraft_model == "giga330M_TTSEnhanced.pth":
