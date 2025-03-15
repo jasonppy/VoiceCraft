@@ -21,7 +21,7 @@ TMP_PATH = os.getenv("TMP_PATH", "./demo/temp")
 MODELS_PATH = os.getenv("MODELS_PATH", "./pretrained_models")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 whisper_model, align_model, voicecraft_model = None, None, None
-
+_whitespace_re = re.compile(r"\s+")
 
 def get_random_string():
     return "".join(str(uuid.uuid4()).split("-"))
@@ -270,7 +270,7 @@ def run(seed, left_margin, right_margin, codec_audio_sr, codec_sr, top_k, top_p,
                 target_transcript = sentence
 
             inference_transcript += target_transcript + "\n"
-
+            target_transcript = re.sub(_whitespace_re, " ", target_transcript)
             prompt_end_frame = int(min(audio_dur, prompt_end_time) * info.sample_rate)
             _, gen_audio = inference_one_sample(voicecraft_model["model"],
                                                 voicecraft_model["config"],
@@ -296,7 +296,7 @@ def run(seed, left_margin, right_margin, codec_audio_sr, codec_sr, top_k, top_p,
                 target_transcript = sentence
 
             inference_transcript += target_transcript + "\n"
-
+            target_transcript = re.sub(_whitespace_re, " ", target_transcript)
             morphed_span = (max(edit_start_time - left_margin, 1 / codec_sr), min(edit_end_time + right_margin, audio_dur))
             mask_interval = [[round(morphed_span[0]*codec_sr), round(morphed_span[1]*codec_sr)]]
             mask_interval = torch.LongTensor(mask_interval)
