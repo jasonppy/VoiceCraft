@@ -4,6 +4,7 @@ import os, random
 import numpy as np
 import torch
 import torchaudio
+import psutil
 
 from data.tokenizer import (
     AudioTokenizer,
@@ -40,7 +41,7 @@ def get_args():
 
 
 @torch.no_grad()
-def inference_one_sample(model, model_args, phn2num, text_tokenizer, audio_tokenizer, audio_fn, target_text, device, decode_config, prompt_end_frame):
+def inference_one_sample(model, model_args, phn2num, text_tokenizer, audio_tokenizer, audio_fn, target_text, device, decode_config, prompt_end_frame, half=False):
     # phonemize
     text_tokens = [phn2num[phn] for phn in
             tokenize_text(
@@ -49,6 +50,7 @@ def inference_one_sample(model, model_args, phn2num, text_tokenizer, audio_token
         ]
     text_tokens = torch.LongTensor(text_tokens).unsqueeze(0)
     text_tokens_lens = torch.LongTensor([text_tokens.shape[-1]])
+    print("finished phonemize")
 
     # encode audio
     encoded_frames = tokenize_audio(audio_tokenizer, audio_fn, offset=0, num_frames=prompt_end_frame)
@@ -56,12 +58,19 @@ def inference_one_sample(model, model_args, phn2num, text_tokenizer, audio_token
     assert original_audio.ndim==3 and original_audio.shape[0] == 1 and original_audio.shape[2] == model_args.n_codebooks, original_audio.shape
     logging.info(f"original audio length: {original_audio.shape[1]} codec frames, which is {original_audio.shape[1]/decode_config['codec_sr']:.2f} sec.")
 
+    process = psutil.Process()
+    print(f"finished encode; memory usage: {process.memory_info().rss}")
+
+    text_tokens = text_tokens.to(device)
+    if half:
+        text_tokens = text_tokens.half()
+
     # forward
     stime = time.time()
     if decode_config['sample_batch_size'] <= 1:
         logging.info(f"running inference with batch size 1")
         concat_frames, gen_frames = model.inference_tts(
-            text_tokens.to(device),
+            text_tokens,
             text_tokens_lens.to(device),
             original_audio[...,:model_args.n_codebooks].to(device), # [1,T,8]
             top_k=decode_config['top_k'],
@@ -74,7 +83,7 @@ def inference_one_sample(model, model_args, phn2num, text_tokenizer, audio_token
     else:
         logging.info(f"running inference with batch size {decode_config['sample_batch_size']}, i.e. return the shortest among {decode_config['sample_batch_size']} generations.")
         concat_frames, gen_frames = model.inference_tts_batch(
-            text_tokens.to(device),
+            text_tokens,
             text_tokens_lens.to(device),
             original_audio[...,:model_args.n_codebooks].to(device), # [1,T,8]
             top_k=decode_config['top_k'],
@@ -85,6 +94,9 @@ def inference_one_sample(model, model_args, phn2num, text_tokenizer, audio_token
             batch_size = decode_config['sample_batch_size'],
             silence_tokens=eval(decode_config['silence_tokens']) if type(decode_config['silence_tokens'])==str else decode_config['silence_tokens']
         ) # output is [1,K,T]
+
+    print("finished forward pass")
+
     logging.info(f"inference on one sample take: {time.time() - stime:.4f} sec.")
 
     logging.info(f"generated encoded_frames.shape: {gen_frames.shape}, which is {gen_frames.shape[-1]/decode_config['codec_sr']} sec.")
