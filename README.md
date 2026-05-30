@@ -18,7 +18,7 @@ see [quickstart command line](#quickstart-command-line).
 
 When you are inside the docker image or you have installed all dependencies, Checkout [`inference_tts.ipynb`](./inference_tts.ipynb).
 
-If you want to do model development such as training/finetuning, I recommend following [envrionment setup](#environment-setup) and [training](#training).
+If you want to do model development such as training/finetuning, I recommend following [environment setup](#environment-setup) and [training](#training).
 
 ## News
 :star: 03/15/2025: change inference sampling from topp=1 to topk=40 massively improve editing and TTS performance
@@ -195,7 +195,7 @@ python phonemize_encodec_encode_hf.py \
 --batch_size 32 \
 --max_len 30000
 ```
-where encodec_model_path is avaliable [here](https://huggingface.co/pyp1/VoiceCraft). This model is trained on Gigaspeech XL, it has 56M parameters, 4 codebooks, each codebook has 2048 codes. Details are described in our [paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf). If you encounter OOM during extraction, try decrease the batch_size and/or max_len.
+where encodec_model_path is available [here](https://huggingface.co/pyp1/VoiceCraft). This model is trained on Gigaspeech XL, it has 56M parameters, 4 codebooks, each codebook has 2048 codes. Details are described in our [paper](https://jasonppy.github.io/assets/pdfs/VoiceCraft.pdf). If you encounter OOM during extraction, try decrease the batch_size and/or max_len.
 The extracted codes, phonemes, and vocab.txt will be stored at `path/to/store_extracted_codes_and_phonemes/${dataset_size}/{encodec_16khz_4codebooks,phonemes,vocab.txt}`.
 
 As for manifest, please download train.txt and validation.txt from [here](https://huggingface.co/datasets/pyp1/VoiceCraft_RealEdit/tree/main), and put them under `path/to/store_extracted_codes_and_phonemes/manifest/`. Please also download vocab.txt from [here](https://huggingface.co/datasets/pyp1/VoiceCraft_RealEdit/tree/main) if you want to use our pretrained VoiceCraft model (so that the phoneme-to-token matching is the same).
@@ -233,4 +233,3 @@ We thank Feiteng for his [VALL-E reproduction](https://github.com/lifeiteng/vall
 
 ## Disclaimer
 Any organization or individual is prohibited from using any technology mentioned in this paper to generate or edit someone's speech without his/her consent, including but not limited to government leaders, political figures, and celebrities. If you do not comply with this item, you could be in violation of copyright laws.
-
