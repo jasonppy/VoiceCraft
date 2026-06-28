@@ -21,7 +21,7 @@ RUN conda update -y -n base -c conda-forge conda && \
     conda run -n voicecraft pip install phonemizer==3.2.1 && \
     conda run -n voicecraft pip install datasets==2.16.0 && \
     conda run -n voicecraft pip install torchmetrics==0.11.1 && \
-    conda run -n voicecraft pip install huggingface_hub==0.22.2
+    conda run -n voicecraft pip install huggingface_hub==0.23.0
     
 
 # Install the Jupyter kernel
